@@ -18,6 +18,13 @@ public class Juego {
 
     /* El héroe del juego */
     private Heroe heroe;
+    
+    //Destructor
+    private Destructor destructor;
+    //Ave de Presa
+    private AveDePresa aveDePresa;
+    //Lanza Minas
+    private LanzaMinas lanzaMinas;
 
     /* Objeto de entrada compartido */
     private Entrada entrada;
@@ -37,21 +44,34 @@ public class Juego {
         entrada = new Entrada();
         entrada.setMiCanvas(miCanvas);
 
-        /* Crear el héroe (sin dimensiones, las toma en inicia) */
+        /* Crear las naves (sin dimensiones, las toma en inicia) */
         heroe = new Heroe();
+        destructor = new Destructor();
+        aveDePresa = new AveDePresa();
+        lanzaMinas = new LanzaMinas();
 
         /* inicia() carga imágenes y fija posición inicial */
         heroe.inicia(miCanvas);
+        destructor.inicia(miCanvas);
+        aveDePresa.inicia(miCanvas);
+        lanzaMinas.inicia(miCanvas);
+        
     }
 
     /* Mueve todos los elementos del juego */
     public void mover() {
         heroe.mover(entrada);
+        destructor.mover(entrada);
+        aveDePresa.mover(entrada);
+        lanzaMinas.mover(entrada);
     }
 
     /* Pinta todos los elementos del juego */
     public void pinta() {
         heroe.pinta(miCanvas);
+        destructor.pinta(miCanvas);
+        aveDePresa.pinta(miCanvas);
+        lanzaMinas.pinta(miCanvas);
     }
 
     /* Punto de entrada: loop igual al del Pong del profe */

@@ -23,10 +23,10 @@ abstract public class NaveEnemiga extends ElementoGrafico implements Destruible 
     protected int vidasActuales;
     //Puntos que otorga al morir, cada subclase los define
     protected int puntos;
-    //Limites de la pantalla se obtienen en inicia(canvas)
+    /*Limites de la pantalla se obtienen en inicia(canvas)*/
     double limiteDer;
     double limiteIzq;
-    private double limiteSup;
+    double limiteSup;
     double limiteInf;
     /* Constructor vacío requerido por el evaluador para reflexión */
     public NaveEnemiga() {

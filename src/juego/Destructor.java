@@ -42,17 +42,15 @@ public class Destructor extends NaveEnemiga {
     /* Constructor vacío requerido por el evaluador */
     public Destructor() {
         super();
-        this.puntos       = 50;
+        this.puntos = 50;
         this.vidasActuales = 1;
-        this.direccion    = DERECHA;
-        this.azar         = new Random();
+        this.direccion = DERECHA;
+        this.azar = new Random();
         this.contadorDisparo = 0;
         setSprite("Destructor.png");
-
         /* Crear la bala del destructor */
         bala = new BalaEnemiga();
     }
-
     /*
      * Inicializa posición aleatoria en la parte superior.
      * Llama super.inicia() para cargar sprite y límites.
@@ -61,12 +59,12 @@ public class Destructor extends NaveEnemiga {
     public void inicia(Lienzo canvas) {
         super.inicia(canvas);
         bala.inicia(canvas);
-
+        
         /* Columna aleatoria dentro de los límites */
-        columna = limiteIzq + azar.nextDouble() * (limiteDer - limiteIzq);
+        columna = limiteIzq + azar.nextDouble()*(limiteDer - limiteIzq);
 
         /* Aparece en la parte superior */
-        renglon = limiteInf + 20;
+        renglon = limiteSup-80;
 
         /* Activar visibilidad */
         vida = true;

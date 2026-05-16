@@ -33,7 +33,7 @@ public class BalaEnemiga extends ElementoGrafico {
  
     /* Contador para animacion de explosion */
     private int contador;
-    private static final int FRAMES_EXPLOSION = 3;
+    private static final int FPS_EXPLOSION = 3;
  
     /* Velocidad base de la bala */
     private static final double VELOCIDAD_BALA = 6.0;
@@ -97,14 +97,14 @@ public class BalaEnemiga extends ElementoGrafico {
  
             case VUELO:
                 /* Siempre baja */
-                renglon += VELOCIDAD_BALA;
+                renglon -= VELOCIDAD_BALA;
  
                 /* Componente horizontal segun angulo */
-                columna += VELOCIDAD_BALA * angulo;
+                columna -= VELOCIDAD_BALA * angulo;
  
                 /* Si sale de pantalla se inactiva */
-                if (renglon > limiteInf || renglon < limiteSup
-                        || columna > limiteIzq || columna < limiteDer) {
+                if (renglon > limiteSup || renglon < limiteInf
+                        || columna > limiteDer || columna < limiteIzq) {
                     estadoActual = INACTIVA;
                     vida = false;
                 }
@@ -112,7 +112,7 @@ public class BalaEnemiga extends ElementoGrafico {
  
             case EXPLOTANDO:
                 contador += 1;
-                if (contador >= FRAMES_EXPLOSION) {
+                if (contador >= FPS_EXPLOSION) {
                     estadoActual = INACTIVA;
                     contador     = 0;
                     vida         = false;
