@@ -32,12 +32,17 @@ public class Heroe extends ElementoGrafico {
     /* Cooldown entre disparos para controlar la ráfaga */
     private int cooldownDisparo;
     private static final int FPS_COOLDOWN = 8;
+    
+    /* Sistema de vidas: el heroe comienza con 3 vidas */
+    private int vidas;
+    private static final int VIDAS_INICIALES = 3;
 
     /* Constructor: solo asigna sprite y velocidad */
     public Heroe() {
         velocidad = 5;
         cooldownDisparo = 0;
-        setSprite("pixil-frame-0.png");
+        setSprite("Heroe.png");
+        vidas = VIDAS_INICIALES;
 
         /* Crear las balas, se inicializarán en inicia() */
         balas = new Bala[MAX_BALAS];
@@ -62,16 +67,19 @@ public class Heroe extends ElementoGrafico {
         limiteInf   = canvas.pideLimiteYMin();
 
         /* Posición inicial: centro horizontal, borde inferior */
-        columna = (limiteDer - limiteIzq) / 2;
+        columna = limiteDer / 2;//CHECAR
         renglon = limiteInf;
+        
+         /* Restablecer vidas y visibilidad para nueva partida */
+        vidas = VIDAS_INICIALES;
+        vida  = true;
 
         /* Inicializar cada bala con el canvas */
         for (int i = 0; i < MAX_BALAS; i++) {
             balas[i].inicia(canvas);
         }
-
         /* Activar visibilidad */
-        vida = true;
+        //vida = true;
     }
 
     /*
@@ -101,13 +109,34 @@ public class Heroe extends ElementoGrafico {
         }
         return false;
     }
-
+    /*
+     * Resta una vida al heroe.
+     * Si llega a 0 vidas, desactiva la visibilidad (derrota).
+     * Requerido por el evaluador (Fase 3).
+     */
+    public void perderVida() {
+        /* Solo perder vida si aun esta vivo */
+        if (!vida) {
+            return;
+        }
+        vidas -= 1;
+ 
+        /* Si quedo sin vidas, el heroe muere */
+        if (vidas <= 0) {
+            vida = false;
+        }
+    }
+    
     /*
      * Mueve la nave leyendo el teclado desde e.getMiCanvas().
      * Gestiona cooldown, disparo y movimiento de todas las balas.
      */
     @Override
     public void mover(Entrada e) {
+        /* No moverse si no esta vivo */
+        if (!vida) {
+            return;
+        }
         /* Obtener canvas desde la entrada para leer teclas */
         Lienzo canvas = e.getMiCanvas();
 
@@ -166,5 +195,9 @@ public class Heroe extends ElementoGrafico {
     /* Expone las balas para colisiones en Juego.java */
     public Bala[] getBalas() {
         return balas;
+    }
+     /* Retorna las vidas actuales para mostrar en HUD */
+    public int getVidas() {
+        return vidas;
     }
 }
