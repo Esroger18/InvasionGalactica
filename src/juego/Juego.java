@@ -3,84 +3,72 @@ package juego;
 import edu.epromero.util.Lienzo;
 
 /*
- * Juego: Clase principal y motor del videojuego.
- * Contiene el Game Loop, instancia el Lienzo y es el punto de entrada.
+ * Motor principal del juego. Punto de entrada.
+ * Sigue el patrón del profe igual que el Pong:
+ * crea miCanvas, inicia objetos, loop: limpia -> mover -> pinta -> mostrar
  */
 public class Juego {
 
-    // Dimensiones de la ventana
+    /* Dimensiones de la ventana */
     private static final int ANCHO = 800;
     private static final int ALTO  = 600;
 
-    // Pausa entre ciclos en milisegundos (aprox. 60 FPS)
-    //IIIIIIAAAAAA
-    private static final int MS_POR_CICLO = 16;
+    /* El lienzo de dibujo, igual que miCanvas en Pong */
+    private Lienzo miCanvas;
 
-    public static void main(String[] args) {
+    /* El héroe del juego */
+    private Heroe heroe;
 
-        Lienzo miCanvas = new Lienzo();
+    /* Objeto de entrada compartido */
+    private Entrada entrada;
+
+    /*
+     * Constructor: crea el lienzo y todos los objetos.
+     * Igual que el Juego del profe.
+     */
+    public Juego() {
+        /* Crear y configurar el lienzo */
+        miCanvas = new Lienzo();
         miCanvas.ponTamanioLienzo(ANCHO, ALTO);
         miCanvas.ponEscalaX(0, ANCHO);
         miCanvas.ponEscalaY(0, ALTO);
 
-        /* Crear el objeto de entrada (teclado) */
-        Entrada teclado = new Entrada();
+        /* Crear la entrada y asignarle el canvas */
+        entrada = new Entrada();
+        entrada.setMiCanvas(miCanvas);
 
-        /*
-         * TODO: registrar el listener de teclado en el Lienzo.
-         * Revisa en el Javadoc si Lienzo tiene un método como:
-         *   miCanvas.addKeyListener(entrada)
-         * o si hereda de Canvas/Frame y se hace diferente.
-         */
-        miCanvas.addKeyListener(teclado);
+        /* Crear el héroe (sin dimensiones, las toma en inicia) */
+        heroe = new Heroe();
 
-        /* Crear al héroe en el centro inferior de la pantalla */
-        Heroe heroe = new Heroe(ANCHO, ALTO);
-        heroe.aparecer(); // Activarlo para que sea visible
+        /* inicia() carga imágenes y fija posición inicial */
+        heroe.inicia(miCanvas);
+    }
 
-        /*
-         * TODO: verificar en el Javadoc si el Lienzo necesita
-         * algún método para "iniciar" o "mostrar" antes del loop,
-         * por ejemplo: miCanvas.inicia() o miCanvas.setVisible(true)
-         */
+    /* Mueve todos los elementos del juego */
+    public void mover() {
+        heroe.mover(entrada);
+    }
 
-        /* ── GAME LOOP ─────────────────────────────────────── */
-        boolean corriendo = true;
+    /* Pinta todos los elementos del juego */
+    public void pinta() {
+        heroe.pinta(miCanvas);
+    }
 
-        while (corriendo) {
+    /* Punto de entrada: loop igual al del Pong del profe */
+    public static void main(String[] args) {
 
-            /* 1. Leer entrada y mover al héroe */
-            heroe.Mueve(entrada);
+        Juego juego = new Juego();
 
-            /* 2. Limpiar la pantalla antes de redibujar */
-            /*
-             * TODO: verificar en el Javadoc el método para limpiar
-             * el lienzo. Puede ser algo como:
-             *   miCanvas.limpiar()
-             *   miCanvas.borrar()
-             *   miCanvas.ponFondo(r, g, b)
-             */
-            // miCanvas.limpiar();
-
-            /* 3. Dibujar al héroe */
-            heroe.dibujar(miCanvas);
-
-            /* 4. Mostrar lo dibujado en pantalla */
-            /*
-             * TODO: verificar en el Javadoc el método para
-             * "presentar" o "volcar" el buffer a pantalla. Puede ser:
-             *   miCanvas.pinta()
-             *   miCanvas.actualiza()
-             *   miCanvas.repaint()
-             */
-            // miCanvas.pinta();
-
-            /* 5. Esperar para mantener la velocidad del juego */
-            try {
-                Thread.sleep(MS_POR_CICLO);
-            } catch (InterruptedException ex) {
-                corriendo = false;
+        try {
+            /* El juego corre mientras el héroe esté visible */
+            while (juego.heroe.isVisible()) {
+                juego.miCanvas.limpia();
+                juego.mover();
+                juego.pinta();
+                juego.miCanvas.mostrar(20);
             }
+        } catch (Exception ex) {
+            System.out.println("Hilo interrumpido: " + ex.getMessage());
         }
     }
 }

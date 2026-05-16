@@ -1,33 +1,37 @@
 package juego;
-
 /*
  * Superclase de todos los objetos visibles en pantalla.
  * Maneja coordenadas y estado de vida (visibilidad).
+* Usa miCanvas para dibujar y LienzoStd para leer teclas y limites
  */
-
-import edu.epromero.util.LienzoStd
 import edu.epromero.util.Imagen;
+import edu.epromero.util.Lienzo;
 
+/*
+ * Superclase de todos los objetos visibles en pantalla.
+ * Usa miCanvas para dibujar (patrón del profe)
+ * y LienzoStd para leer teclas y límites.
+ */
 abstract public class ElementoGrafico {
 
-    // Coordenadas en pantalla
-    private int columna;
-    private int renglon;
+    /* Coordenadas en pantalla */
+    protected double columna;
+    protected double renglon;
 
-    // Nombre del archivo de imagen y objeto Imagen
-    private String sprite;
-    private Imagen imgSprite;
+    /* Nombre del archivo de imagen y objeto Imagen */
+    protected String sprite;
+    protected Imagen imgSprite;
 
-    // Indica si el elemento está activo/visible
+    /* Estado de vida/visibilidad */
     protected boolean vida;
 
-    // Constantes de dirección (igual que en Pong)
-    public static final int DERECHA   =  1;
+    /* Constantes de dirección */
+    public static final int DERECHA   = 1;
     public static final int IZQUIERDA = -1;
-    public static final int ARRIBA    =  1;
+    public static final int ARRIBA    = 1;
     public static final int ABAJO     = -1;
-    
-/* Constructor vacío: posición en origen */
+
+    /* Constructor vacío */
     public ElementoGrafico() {
         setColumna(0);
         setRenglon(0);
@@ -36,25 +40,30 @@ abstract public class ElementoGrafico {
     }
 
     /* Constructor con posición inicial */
-    public ElementoGrafico(double col, double ren) {
-        setColumna(col);
-        setRenglon(ren);
+    public ElementoGrafico(double columna, double renglon) {
+        setColumna(columna);
+        setRenglon(renglon);
         setSprite("");
         vida = false;
     }
 
-    /* Carga la imagen del sprite desde el archivo */
-    public void inicia() {
-        imgSprite = new Imagen(getSprite());
+    /*
+     * Carga la imagen del sprite.
+     * Recibe canvas igual que en el Pong del profe.
+     */
+    public void inicia(Lienzo canvas) {
+        imgSprite = new Imagen(sprite);
     }
 
-    /* Dibuja el sprite en pantalla usando LienzoStd */
-    public void Pinta() {
-        /* Solo pintar si está vivo/visible */
+    /*
+     * Dibuja el sprite usando miCanvas.
+     * Solo pinta si el elemento está vivo.
+     */
+    public void pinta(Lienzo canvas) {
         if (!vida) {
             return;
         }
-        LienzoStd.dibujo(getColumna(), getRenglon(), getImgSprite());
+        canvas.dibujo(getColumna(), getRenglon(), imgSprite);
     }
 
     /* Activa el elemento (lo hace visible) */
@@ -67,31 +76,38 @@ abstract public class ElementoGrafico {
         return vida;
     }
 
-    /**
-     * @return the columna
-     */
-    public int getColumna() {
+    /* Getters y setters */
+    public double getColumna(){
         return columna;
     }
-
-    /**
-     * @return the renglon
-     */
-    public int getRenglon() {
+    public void setColumna(double columna){
+        this.columna = columna;
+    }
+    public double getRenglon(){
+        return renglon;
+    }
+    public void setRenglon(double renglon){
+        this.renglon = renglon;
+    }
+    public String getSprite(){
+        return sprite;
+    }
+    public void   setSprite(String sprite){
+        this.sprite = sprite;
+    }
+    public Imagen getImgSprite(){
+        return imgSprite;
+    }
+    public void setImgSprite(Imagen img){
+        this.imgSprite = img;
+    }
+    public double getX(){
+        return columna;
+    }
+    public double getY(){
         return renglon;
     }
 
-    /**
-     * @return the sprite
-     */
-    public String getSprite() {
-        return sprite;
-    }
-
-    /**
-     * @return the imgSprite
-     */
-    public Imagen getImgSprite() {
-        return imgSprite;
-    }
-
+    /* Cada subclase define cómo se mueve */
+    abstract public void mover(Entrada e);
+}

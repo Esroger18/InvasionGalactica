@@ -1,118 +1,170 @@
 package juego;
-
-import edu.epromero.util.Imagen;
-import edu.epromero.util.Lienzo;
-
 /*
  * Heroe: La nave del jugador.
  * Extiende ElementoGrafico para heredar coordenadas y visibilidad.
  * Se mueve horizontalmente con las teclas A/D o flechas.
  */
+import edu.epromero.util.Lienzo;
+import java.awt.event.KeyEvent;
+
+/*
+ * Nave rebelde controlada por el jugador.
+ * Inicia en el centro inferior de la pantalla.
+ * Puede disparar una ráfaga de hasta 3 balas simultáneas.
+ */
 public class Heroe extends ElementoGrafico {
 
-    // Velocidad de movimiento en píxeles por ciclo
-    private static final int VELOCIDAD = 5;
+    /* Velocidad de movimiento en píxeles por frame */
+    private double velocidad;
 
-    // Tamaño visual de la nave (para dibujarla y limitar bordes)
-    private static final int TAMANO = 20;
+    /* Límites de la pantalla, se asignan en inicia() */
+    private double limiteDer;
+    private double limiteIzq;
+    private double limiteSup;
+    private double limiteInf;
 
-    // Límites de la pantalla para no salirse
-    private int limiteAncho;
-    private int limiteAlto;
-    
-    //ImgSprite para dibujar la imagen (se puede poner como constante creo desde elemento grafico)
-    private Imagen imgSprite;
+    /* Máximo de balas simultáneas en pantalla */
+    private static final int MAX_BALAS = 3;
 
-    /*
-     * Constructor: recibe las dimensiones de la pantalla
-     * para calcular la posición inicial (centro inferior)
-     */
-    public Heroe(int ancho, int alto) {
-        this.limiteAncho = ancho;
-        this.limiteAlto  = alto;
-        // Posición inicial: centro de la pantalla, pegado al borde inferior
-        this.x = ancho / 2;
-        this.y = alto - 50;
-    }
+    /* Arreglo de balas para la ráfaga */
+    private Bala[] balas;
 
-    /*
-     * Mueve la nave según las teclas presionadas.
-     * Recibe el objeto Entrada para leer el teclado.
-     */
-    public void Mueve(Entrada e) {
-        /* Solo moverse si está visible/activo */
-        if (!vida) {
-            return;
-        }
+    /* Cooldown entre disparos para controlar la ráfaga */
+    private int cooldownDisparo;
+    private static final int FPS_COOLDOWN = 8;
 
-        /* Mover a la izquierda */
-        if (e.isIzquierda()) {
-            x -= VELOCIDAD;
-        }
+    /* Constructor: solo asigna sprite y velocidad */
+    public Heroe() {
+        velocidad = 5;
+        cooldownDisparo = 0;
+        setSprite("Heroe.png");
 
-        /* Mover a la derecha */
-        if (e.isDerecha()) {
-            x += VELOCIDAD;
-        }
-        
-        /* Mover arriba */
-        if (e.isArriba()) {
-            y += VELOCIDAD;
-        }
-        
-        /* Mover abajo */
-        if (e.isAbajo()) {
-            y -= VELOCIDAD;
-        }
-
-        /* Limitar al borde izquierdo */
-        if (x < TAMANO) {
-            x = TAMANO;
-        }
-
-        /* Limitar al borde derecho */
-        if (x > limiteAncho - TAMANO) {
-            x = limiteAncho - TAMANO;
-        }
-        
-        /* Limitar al borde superior */
-        if (y > limiteAncho - TAMANO) {
-            y = limiteAncho - TAMANO;
-        }
-        
-        /* Limitar al borde inferior */
-        if (y < TAMANO) {
-            y = TAMANO;
+        /* Crear las balas, se inicializarán en inicia() */
+        balas = new Bala[MAX_BALAS];
+        for (int i = 0; i < MAX_BALAS; i++) {
+            balas[i] = new Bala();
         }
     }
 
     /*
-     * Dibuja la nave en el Lienzo de la EPRLIB.
-     * NOTA: revisa en la documentación de Lienzo cómo se llama
-     * el método para dibujar un polígono o imagen en pantalla.
-     * Puede ser algo como:
-     *   lienzo.ponColor(r, g, b)        <- para el color
-     *   lienzo.dibujaCírculo(x, y, r)   <- o dibuja figura
-     *   lienzo.dibujaLinea(x1,y1,x2,y2) <- o con líneas
-     * Ajusta los nombres reales de los métodos según el Javadoc.
+     * Inicializa posición y carga imágenes.
+     * Usa los límites del canvas igual que RaquetaSinIA.
      */
-    
-    
-    
-    public void dibujar(Lienzo lienzo) {
-        if (!vida) {
-            return;
+    @Override
+    public void inicia(Lienzo canvas) {
+        /* Cargar sprite del héroe */
+        super.inicia(canvas);
+
+        /* Guardar límites de pantalla para usarlos en mover() */
+        limiteDer = canvas.pideLimiteXMax();
+        limiteIzq   = canvas.pideLimiteXMin();
+        limiteSup  = canvas.pideLimiteYMax();
+        limiteInf   = canvas.pideLimiteYMin();
+
+        /* Posición inicial: centro horizontal, borde inferior */
+        columna = (limiteDer - limiteIzq) / 2;
+        renglon = limiteInf;
+
+        /* Inicializar cada bala con el canvas */
+        for (int i = 0; i < MAX_BALAS; i++) {
+            balas[i].inicia(canvas);
         }
 
-        /* TODO: consultar en Javadoc el método para poner color */
-        // lienzo.ponColor(0, 200, 100);
+        /* Activar visibilidad */
+        vida = true;
+    }
 
-        /* Dibuja el cuerpo de la nave como triángulo apuntando arriba */
-        /* TODO: verificar nombre exacto del método para polígono/líneas */
-        // Punta superior
-        // lienzo.dibujaLinea(x,       y - TAMANO, x - TAMANO, y + TAMANO);
-        // lienzo.dibujaLinea(x,       y - TAMANO, x + TAMANO, y + TAMANO);
-        // Base inferior
-        // lienzo.dibujaLinea(x - TAMANO, y + TAMANO, x + TAMANO, y + TAMANO);
+    /*
+     * Pinta el héroe y todas sus balas activas.
+     */
+    @Override
+    public void pinta(Lienzo canvas) {
+        /* Pinta el sprite del héroe (superclase) */
+        super.pinta(canvas);
+
+        /* Pinta cada bala activa */
+        for (int i = 0; i < MAX_BALAS; i++) {
+            balas[i].pinta(canvas);
+        }
+    }
+
+    /*
+     * Busca la primera bala inactiva y la dispara.
+     * Si las 3 están en vuelo no dispara nada.
+     */
+    private boolean dispararBala(double columna, double renglon) {
+        for (int i = 0; i < MAX_BALAS; i++) {
+            if (!balas[i].estaEnVuelo()) {
+                balas[i].disparar(columna, renglon);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*
+     * Mueve la nave leyendo el teclado desde e.getMiCanvas().
+     * Gestiona cooldown, disparo y movimiento de todas las balas.
+     */
+    @Override
+    public void mover(Entrada e) {
+        /* Obtener canvas desde la entrada para leer teclas */
+        Lienzo canvas = e.getMiCanvas();
+
+        /* ── Movimiento izquierda ── */
+        if (canvas.fuePulsadaTecla(KeyEvent.VK_LEFT) ||
+            canvas.fuePulsadaTecla(KeyEvent.VK_A)) {
+            columna -= velocidad;
+        }
+
+        /* ── Movimiento derecha ── */
+        if (canvas.fuePulsadaTecla(KeyEvent.VK_RIGHT) ||
+            canvas.fuePulsadaTecla(KeyEvent.VK_D)) {
+            columna += velocidad;
+        }
+
+        /* ── Movimiento arriba ── */
+        if (canvas.fuePulsadaTecla(KeyEvent.VK_UP) ||
+            canvas.fuePulsadaTecla(KeyEvent.VK_W)) {
+            renglon += velocidad;
+        }
+
+        /* ── Movimiento abajo ── */
+        if (canvas.fuePulsadaTecla(KeyEvent.VK_DOWN) ||
+            canvas.fuePulsadaTecla(KeyEvent.VK_S)) {
+            renglon -= velocidad;
+        }
+
+        /* ── Límites de pantalla ── */
+        if (renglon < limiteInf)   renglon = limiteInf;
+        if (renglon > limiteSup)  renglon = limiteSup;
+        if (columna < limiteIzq)   columna = limiteIzq;
+        if (columna > limiteDer) columna = limiteDer;
+
+        /* ── Reducir cooldown cada frame ── */
+        if (cooldownDisparo > 0) {
+            cooldownDisparo -= 1;
+        }
+
+        /* ── Disparo con barra espaciadora ── */
+        if (canvas.fuePulsadaTecla(KeyEvent.VK_SPACE)
+                && cooldownDisparo == 0) {
+            /*
+             * La bala sale del centro-superior de la nave.
+             * TODO: ajusta +20 y -10 según el tamaño de Heroe.png
+             */
+            dispararBala(columna + 20, renglon - 10);
+            cooldownDisparo = FPS_COOLDOWN;
+        }
+
+        /* ── Mover todas las balas cada frame ── */
+        for (int i = 0; i < MAX_BALAS; i++) {
+            balas[i].mover(e);
+        }
+    }
+
+    /* Expone las balas para colisiones en Juego.java */
+    public Bala[] getBalas() {
+        return balas;
     }
 }
