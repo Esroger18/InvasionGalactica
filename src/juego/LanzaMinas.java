@@ -28,6 +28,7 @@ import java.util.Random;
  * El evaluador busca esta clase por nombre para otorgar puntos.
  */
 @ComportamientoEnemigo(tipo = "LanzaMinas", resistencia = 4, puntos = 100)
+
 public class LanzaMinas extends NaveEnemiga {
 
     /* Velocidad de movimiento horizontal lento */
@@ -124,9 +125,6 @@ public class LanzaMinas extends NaveEnemiga {
             columna   = limiteIzq;
             direccion = DERECHA;
         }
-
-        /* Actualizar objetivo de la bala con posicion actual del heroe */
-        bala.actualizarObjetivo(heroeColumna, heroeRenglon);
 
         /* Contar frames para el disparo cada 5 segundos */
         contadorDisparo += 1;

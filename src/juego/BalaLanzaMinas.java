@@ -43,10 +43,19 @@ public class BalaLanzaMinas extends ElementoGrafico {
      * y una columna por movimiento".
      */
     private static final double PASO = 1.0;
-
-    /* Posicion objetivo (del heroe) actualizada cada frame */
+    
+    /*
+     * Direccion fija calculada al disparar hacia el heroe.
+     * -1 = izquierda/abajo, 0 = recto, 1 = derecha/arriba.
+     * Se calcula una sola vez al disparar y no cambia,
+     * garantizando que la bala siempre avance y salga de pantalla.
+     */
+    private int dirColumna;
+    private int dirRenglon;
+    
+    /* Posicion objetivo (del heroe) actualizada cada frame
     private double objetivoColumna;
-    private double objetivoRenglon;
+    private double objetivoRenglon;*/
 
     /* Limites de pantalla obtenidos en inicia(canvas) */
     private double limiteDer;
@@ -59,8 +68,8 @@ public class BalaLanzaMinas extends ElementoGrafico {
         super();
         this.estadoActual    = INACTIVA;
         this.contador        = 0;
-        this.objetivoColumna = 0;
-        this.objetivoRenglon = 0;
+        this.dirColumna = 0;
+        this.dirRenglon = -1;
         setSprite("Bala_Enemiga.png");
     }
 
@@ -88,25 +97,34 @@ public class BalaLanzaMinas extends ElementoGrafico {
         }
         setColumna(colOrigen);
         setRenglon(renOrigen);
-        this.objetivoColumna = colHeroe;
-        this.objetivoRenglon = renHeroe;
+        
+        /* Calcular direccion en columna hacia el heroe */
+        if (colHeroe > colOrigen) {
+            dirColumna = 1;
+        } else if (colHeroe < colOrigen) {
+            dirColumna = -1;
+        } else {
+            dirColumna = 0;
+        }
+ 
+        /* Calcular direccion en renglon hacia el heroe */
+        if (renHeroe < renOrigen) {
+            dirRenglon = -1;
+        } else if (renHeroe > renOrigen) {
+            dirRenglon = 1;
+        } else {
+            dirRenglon = -1; /* Si esta al mismo nivel, baja por defecto */
+        }
+        
         estadoActual = VUELO;
         vida = true;
     }
-
+    
     /*
-     * Actualiza el objetivo con la posicion actual del heroe.
-     * Se llama cada frame desde LanzaMinas.mover().
+     * Mueve la bala 1 paso por eje en la direccion fija calculada al disparar.
+     * La direccion es constante: siempre avanza y sale de pantalla.
      */
-    public void actualizarObjetivo(double colHeroe, double renHeroe) {
-        this.objetivoColumna = colHeroe;
-        this.objetivoRenglon = renHeroe;
-    }
-
-    /*
-     * Mueve la bala un paso hacia el objetivo cada frame.
-     * Maximo 1 unidad en columna y 1 en renglon por movimiento.
-     */
+    
     @Override
     public void mover(Entrada e) {
         switch (estadoActual) {
@@ -116,28 +134,18 @@ public class BalaLanzaMinas extends ElementoGrafico {
                 break;
 
             case VUELO:
-                /* Mover 1 paso hacia la columna objetivo */
-                if (columna < objetivoColumna) {
-                    columna += PASO;
-                } else if (columna > objetivoColumna) {
-                    columna -= PASO;
-                }
-
-                /* Mover 1 paso hacia el renglon objetivo */
-                if (renglon < objetivoRenglon) {
-                    renglon += PASO;
-                } else if (renglon > objetivoRenglon) {
-                    renglon -= PASO;
-                }
-
-                /* Inactivar si sale de pantalla */
+                /* Avanzar 1 pixel en cada eje segun la direccion fija */
+                columna += PASO * dirColumna;
+                renglon += PASO * dirRenglon;
+                
+                /* Inactivar cuando sale de los limites de pantalla */
                 if (renglon > limiteSup || renglon < limiteInf
                         || columna > limiteDer || columna < limiteIzq) {
                     estadoActual = INACTIVA;
                     vida = false;
                 }
                 break;
-
+                
             case EXPLOTANDO:
                 contador += 1;
                 if (contador >= FPS_EXPLOSION) {

@@ -37,7 +37,7 @@ public class Heroe extends ElementoGrafico {
     public Heroe() {
         velocidad = 5;
         cooldownDisparo = 0;
-        setSprite("Heroe.png");
+        setSprite("pixil-frame-0.png");
 
         /* Crear las balas, se inicializarán en inicia() */
         balas = new Bala[MAX_BALAS];
