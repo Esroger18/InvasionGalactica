@@ -46,7 +46,7 @@ public class Bala extends ElementoGrafico {
         super();
         this.estadoActual = INACTIVA;
         this.contador     = 0;
-        setSprite("Bala.png");
+        setSprite("BalaNave.png");
     }
 
     /*

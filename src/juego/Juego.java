@@ -11,8 +11,8 @@ import edu.epromero.util.Punto2D;
 public class Juego {
 
     /* Dimensiones de la ventana */
-    private static final int ANCHO = 800;
-    private static final int ALTO  = 600;
+    private static final int ANCHO = 900;
+    private static final int ALTO  = 800;
 
     /* El lienzo de dibujo, igual que miCanvas en Pong */
     private Lienzo miCanvas;

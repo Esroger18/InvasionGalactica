@@ -70,7 +70,7 @@ public class BalaLanzaMinas extends ElementoGrafico {
         this.contador        = 0;
         this.dirColumna = 0;
         this.dirRenglon = -1;
-        setSprite("Bala_Enemiga.png");
+        setSprite("BalaLMinas.png");
     }
 
     /*

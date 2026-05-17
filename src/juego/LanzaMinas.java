@@ -66,7 +66,7 @@ public class LanzaMinas extends NaveEnemiga {
         this.contadorDisparo = FRAMES_DISPARO / 2; /* Retraso inicial */
         this.heroeColumna  = 0;
         this.heroeRenglon  = 0;
-        setSprite("LanzaMinas.png");
+        setSprite("LMinas.png");
         /* Crear la bala inteligente */
         bala = new BalaLanzaMinas();
     }

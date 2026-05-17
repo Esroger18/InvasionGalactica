@@ -41,7 +41,7 @@ public class Heroe extends ElementoGrafico {
     public Heroe() {
         velocidad = 5;
         cooldownDisparo = 0;
-        setSprite("Heroe.png");
+        setSprite("Nave.png");
         vidas = VIDAS_INICIALES;
 
         /* Crear las balas, se inicializarán en inicia() */

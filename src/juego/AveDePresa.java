@@ -54,7 +54,7 @@ public class AveDePresa extends NaveEnemiga {
         this.vidasActuales = 3;
         this.azar          = new Random();
         this.contadorDisparo = FRAMES_DISPARO / 2; /* Retraso inicial */
-        setSprite("avepresa.png");
+        setSprite("ADP3.png");
         /* Crear la bala de la ave */
         bala = new BalaEnemiga();
     }

@@ -54,7 +54,7 @@ public class BalaEnemiga extends ElementoGrafico {
         this.contador     = 0;
         this.angulo       = ANGULO_ABAJO;
         /* TODO: cambia "BalaEnemiga.png" por el nombre de tu sprite */
-        setSprite("Bala_Enemiga.png");
+        setSprite("BalaDestructor.png");
     }
  
     /*
