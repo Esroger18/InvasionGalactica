@@ -53,8 +53,7 @@ public class BalaEnemiga extends ElementoGrafico {
         this.estadoActual = INACTIVA;
         this.contador     = 0;
         this.angulo       = ANGULO_ABAJO;
-        /* TODO: cambia "BalaEnemiga.png" por el nombre de tu sprite */
-        setSprite("BalaDestructor.png");
+        setSprite("");
     }
  
     /*
@@ -83,7 +82,7 @@ public class BalaEnemiga extends ElementoGrafico {
         estadoActual = VUELO;
         vida = true;
     }
- 
+    
     /*
      * Mueve la bala segun su estado y angulo.
      */

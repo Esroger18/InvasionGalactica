@@ -24,18 +24,27 @@ public class Heroe extends ElementoGrafico {
     private double limiteInf;
 
     /* Máximo de balas simultáneas en pantalla */
-    private static final int MAX_BALAS = 3;
+    private static final int MAX_BALAS = 4;
 
     /* Arreglo de balas para la ráfaga */
     private Bala[] balas;
 
     /* Cooldown entre disparos para controlar la ráfaga */
     private int cooldownDisparo;
-    private static final int FPS_COOLDOWN = 8;
+    private static final int FPS_COOLDOWN = 10;
     
     /* Sistema de vidas: el heroe comienza con 3 vidas */
     private int vidas;
     private static final int VIDAS_INICIALES = 3;
+    
+    /*
+     * Frames de invencibilidad tras recibir daño.
+     * Evita que una colision continua quite varias vidas
+     * en frames consecutivos mientras el heroe se aleja.
+     * A 20ms por frame, 60 frames = ~1.2 segundos de pausa.
+     */
+    private int framesSinDanio;
+    private static final int FRAMES_INVENCIBLE = 60;
 
     /* Constructor: solo asigna sprite y velocidad */
     public Heroe() {
@@ -68,7 +77,7 @@ public class Heroe extends ElementoGrafico {
 
         /* Posición inicial: centro horizontal, borde inferior */
         columna = limiteDer / 2;//CHECAR
-        renglon = limiteInf;
+        renglon = limiteInf + 80;
         
          /* Restablecer vidas y visibilidad para nueva partida */
         vidas = VIDAS_INICIALES;
@@ -115,11 +124,14 @@ public class Heroe extends ElementoGrafico {
      * Requerido por el evaluador (Fase 3).
      */
     public void perderVida() {
-        /* Solo perder vida si aun esta vivo */
-        if (!vida) {
+        /* Solo perder vida si aun esta vivo y no es invencible */
+        if (!vida || framesSinDanio > 0) {
             return;
         }
         vidas -= 1;
+        
+        //Activar invencibilidad temporal
+        framesSinDanio = FRAMES_INVENCIBLE;
  
         /* Si quedo sin vidas, el heroe muere */
         if (vidas <= 0) {
@@ -152,17 +164,18 @@ public class Heroe extends ElementoGrafico {
             columna += velocidad;
         }
 
-        /* ── Movimiento arriba ── */
+        /* ── Movimiento arriba ──
         if (canvas.fuePulsadaTecla(KeyEvent.VK_UP) ||
             canvas.fuePulsadaTecla(KeyEvent.VK_W)) {
             renglon += velocidad;
         }
 
-        /* ── Movimiento abajo ── */
+        /* ── Movimiento abajo ── 
         if (canvas.fuePulsadaTecla(KeyEvent.VK_DOWN) ||
             canvas.fuePulsadaTecla(KeyEvent.VK_S)) {
             renglon -= velocidad;
         }
+        */
 
         /* ── Límites de pantalla ── */
         if (renglon < limiteInf)   renglon = limiteInf;
@@ -173,6 +186,10 @@ public class Heroe extends ElementoGrafico {
         /* ── Reducir cooldown cada frame ── */
         if (cooldownDisparo > 0) {
             cooldownDisparo -= 1;
+        }
+            /* Reducir contador de invencibilidad cada frame */
+        if (framesSinDanio > 0) {
+            framesSinDanio -= 1;
         }
 
         /* ── Disparo con barra espaciadora ── */
@@ -199,5 +216,9 @@ public class Heroe extends ElementoGrafico {
      /* Retorna las vidas actuales para mostrar en HUD */
     public int getVidas() {
         return vidas;
+    }
+    
+    public void ganarVida(){
+        vidas += 1;
     }
 }

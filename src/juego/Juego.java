@@ -2,6 +2,7 @@ package juego;
 
 import edu.epromero.util.Lienzo;
 import edu.epromero.util.Punto2D;
+import java.awt.event.KeyEvent;
 
 /*
  * Motor principal del juego. Punto de entrada.
@@ -13,7 +14,15 @@ public class Juego {
     /* Dimensiones de la ventana */
     private static final int ANCHO = 900;
     private static final int ALTO  = 800;
+    
+     /* Radios de colision por tipo de objeto (60% del sprite, descontando espacio blanco) */
+    private static final double RADIO_HEROE       = 40.0; /* Nave.png      132x132 */
+    private static final double RADIO_DESTRUCTOR  = 40.0; /* Destructor    132x132 */
+    private static final double RADIO_AVE         = 40.0; /* ADP1.png      132x132 */
+    private static final double RADIO_LMINAS  = 60.0; /* LMinas.png    198x198 */
+    private static final double RADIO_BALA        = 20.0; /* Balas         66x66   */
 
+    private static final int PUNTOS_VIDA_EXTRA = 500;
     /* El lienzo de dibujo, igual que miCanvas en Pong */
     private Lienzo miCanvas;
     
@@ -29,16 +38,22 @@ public class Juego {
 
     /* Objeto de entrada compartido */
     private Entrada entrada;
+    
+    //Menu principal y marcador de puntajes
+    private Menu menu;
+    private Marcador marcador;
 
+    /* Puntaje acumulado y control de vida extra */
+    private int puntos;
+    private int puntosUltimaVidaExtra;
+    
     /*
      * Radio de colision en pixeles.
      * Si la distancia entre dos objetos es menor a este valor,
      * se considera colision.
      */
-    private static final double RADIO_COLISION = 30.0;
+    //private static final double RADIO_COLISION = 30.0;
     
-    /* Puntaje acumulado del jugador */
-    private int puntos;
     
     /*
      * Constructor: crea el lienzo y todos los objetos.
@@ -54,6 +69,9 @@ public class Juego {
         /* Crear la entrada y asignarle el canvas */
         entrada = new Entrada();
         entrada.setMiCanvas(miCanvas);
+        
+        marcador = new Marcador();
+        menu = new Menu(miCanvas, marcador);
 
         /* Crear las naves (sin dimensiones, las toma en inicia) */
         heroe = new Heroe();
@@ -69,8 +87,36 @@ public class Juego {
         
         //Puntaje inicial
         puntos = 0;
+        puntosUltimaVidaExtra = 0;
     }
 
+    /*
+     * Reinicia el juego para una nueva partida.
+     * Restablece posiciones, vidas y puntaje.
+     */
+    public void reiniciar() {
+        heroe.inicia(miCanvas);
+        destructor.inicia(miCanvas);
+        aveDePresa.inicia(miCanvas);
+        lanzaMinas.inicia(miCanvas);
+        puntos               = 0;
+        puntosUltimaVidaExtra = 0;
+        menu.reiniciar();
+    }
+    
+    /*
+     * Suma puntos y verifica si se gano una vida extra.
+     * Cada 500 puntos se otorga una vida adicional al heroe.
+     */
+    private void sumarPuntos(int cantidad) {
+        puntos += cantidad;
+        /* Verificar si se alcanza el umbral de vida extra */
+        if (puntos - puntosUltimaVidaExtra >= PUNTOS_VIDA_EXTRA) {
+            heroe.ganarVida();
+            puntosUltimaVidaExtra += PUNTOS_VIDA_EXTRA;
+        }
+    }
+    
     /* Mueve todos los elementos del juego */
     public void mover() {
         heroe.mover(entrada);
@@ -127,11 +173,13 @@ public class Juego {
                     balasHeroe[i].getColumna(), balasHeroe[i].getRenglon());
  
                 /* Si la bala esta cerca del destructor, impacto */
-                if (posBala.distanceTo(posDestructor) < RADIO_COLISION) {
+                if (posBala.distanceTo(posDestructor) < RADIO_BALA + RADIO_DESTRUCTOR) {
                     balasHeroe[i].explotar();
                     /* recibirDanio() retorna true si fue impacto fatal */
                     if (destructor.recibirDanio()) {
                         puntos += destructor.getPuntos();
+                        //Al morir el ave, inactivar su bala para que no quede en pantalla
+                        destructor.inactivarBala();
                     }
                 }
             }
@@ -149,10 +197,12 @@ public class Juego {
                 Punto2D posBala = new Punto2D(
                     balasHeroe[i].getColumna(), balasHeroe[i].getRenglon());
  
-                if (posBala.distanceTo(posAve) < RADIO_COLISION) {
+                if (posBala.distanceTo(posAve) < RADIO_BALA + RADIO_AVE) {
                     balasHeroe[i].explotar();
                     if (aveDePresa.recibirDanio()) {
                         puntos += aveDePresa.getPuntos();
+                        //Al morir el ave, inactivar su bala para que no quede en pantalla
+                        aveDePresa.inactivarBala();
                     }
                 }
             }
@@ -170,7 +220,7 @@ public class Juego {
                 Punto2D posBala = new Punto2D(
                     balasHeroe[i].getColumna(), balasHeroe[i].getRenglon());
  
-                if (posBala.distanceTo(posLanza) < RADIO_COLISION) {
+                if (posBala.distanceTo(posLanza) < RADIO_BALA + RADIO_LMINAS) {
                     balasHeroe[i].explotar();
                     if (lanzaMinas.recibirDanio()) {
                         puntos += lanzaMinas.getPuntos();
@@ -185,7 +235,7 @@ public class Juego {
                 destructor.getBala().getColumna(),
                 destructor.getBala().getRenglon());
  
-            if (posBalaDestructor.distanceTo(posHeroe) < RADIO_COLISION) {
+            if (posBalaDestructor.distanceTo(posHeroe) < RADIO_BALA + RADIO_HEROE) {
                 destructor.getBala().explotar();
                 heroe.perderVida();
             }
@@ -197,7 +247,7 @@ public class Juego {
                 aveDePresa.getBala().getColumna(),
                 aveDePresa.getBala().getRenglon());
  
-            if (posBalaAve.distanceTo(posHeroe) < RADIO_COLISION) {
+            if (posBalaAve.distanceTo(posHeroe) < RADIO_BALA + RADIO_HEROE) {
                 aveDePresa.getBala().explotar();
                 heroe.perderVida();
             }
@@ -209,8 +259,43 @@ public class Juego {
                 lanzaMinas.getBala().getColumna(),
                 lanzaMinas.getBala().getRenglon());
  
-            if (posBalaLanza.distanceTo(posHeroe) < RADIO_COLISION) {
+            if (posBalaLanza.distanceTo(posHeroe) < RADIO_BALA + RADIO_HEROE) {
                 lanzaMinas.getBala().explotar();
+                heroe.perderVida();
+            }
+        }
+        /* --- 7. Destructor vs Heroe (colision de naves) --- */
+        if (heroe.isVisible() && destructor.isVisible()) {
+            Punto2D posDestructorNave = new Punto2D(
+                destructor.getColumna(), destructor.getRenglon());
+ 
+            /* Umbral = radio heroe + radio destructor */
+            if (posHeroe.distanceTo(posDestructorNave) < (RADIO_HEROE + RADIO_DESTRUCTOR)) {
+                /* El destructor no muere por colision con otras naves segun el documento */
+                heroe.perderVida();
+            }
+        }
+ 
+        /* --- 8. AveDePresa vs Heroe (colision de naves) --- */
+        if (heroe.isVisible() && aveDePresa.isVisible()) {
+            Punto2D posAveNave = new Punto2D(
+                aveDePresa.getColumna(), aveDePresa.getRenglon());
+ 
+            /* Umbral = radio heroe + radio ave */
+            if (posHeroe.distanceTo(posAveNave) < (RADIO_HEROE + RADIO_AVE)) {
+                /* El ave no muere por colision con otras naves segun el documento */
+                heroe.perderVida();
+            }
+        }
+ 
+        /* --- 9. LanzaMinas vs Heroe (colision de naves) --- */
+        if (heroe.isVisible() && lanzaMinas.isVisible()) {
+            Punto2D posLanzaNave = new Punto2D(
+                lanzaMinas.getColumna(), lanzaMinas.getRenglon());
+ 
+            /* Umbral = radio heroe + radio lanzaminas */
+            if (posHeroe.distanceTo(posLanzaNave) < (RADIO_HEROE + RADIO_LMINAS)) {
+                /* El lanzaminas no muere por colision con otras naves segun el documento */
                 heroe.perderVida();
             }
         }
@@ -222,14 +307,43 @@ public class Juego {
         Juego juego = new Juego();
 
         try {
-            /* El juego corre mientras el héroe esté visible */
-            while (juego.heroe.isVisible()) {
-                juego.miCanvas.limpia();
-                juego.mover();
-                juego.revisarColisiones();
-                juego.pinta();
-                juego.miCanvas.mostrar(20);
+            //Ciclo externo permite jugar varias partidas
+            while(true){
+                //Menu mostrar top 10 y captura nombre
+                while (!juego.menu.estaListo()) {
+                    juego.miCanvas.limpia();
+                    juego.menu.mover();
+                    juego.menu.pinta();
+                    juego.miCanvas.mostrar(20);
             }
+            //FASE JUEGO game loop
+                while(juego.heroe.isVisible()){
+                    juego.miCanvas.limpia();
+                    juego.mover();
+                    juego.revisarColisiones();
+                    juego.pinta();
+                    juego.miCanvas.mostrar(20);
+                }
+                //FASE FIN Guardar los puntajes en el top 10
+                juego.marcador.agregarPuntaje(juego.menu.getNombreJugador(), 
+                        juego.puntos);
+                //Mostar pantalla de game over
+                juego.miCanvas.limpia();
+                juego.miCanvas.texto(280, 320, "GAME OVER");
+                juego.miCanvas.texto(200, 280, "Puntaje Final" + juego.puntos);
+                juego.miCanvas.texto(180, 240, "Presiona espacio para jugar de nuevo");
+                juego.miCanvas.mostrar(20);
+                //Espera a que el jugador presione espacio
+                boolean esperando = true;
+                while(esperando) {
+                    juego.miCanvas.mostrar(20);
+                    if(juego.miCanvas.fuePulsadaTecla(KeyEvent.VK_SPACE)){
+                        esperando = false;
+                    }
+                }
+                //Reiniciar todo para la nueva partida
+                juego.reiniciar();
+            } 
         } catch (Exception ex) {
             System.out.println("Hilo interrumpido: " + ex.getMessage());
         }

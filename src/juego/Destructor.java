@@ -23,7 +23,7 @@ import java.util.Random;
 public class Destructor extends NaveEnemiga {
 
     /* Velocidad de movimiento horizontal */
-    private static final double VELOCIDAD = 3.0;
+    private static final int VELOCIDAD = 3;
 
     /* Dirección actual: DERECHA o IZQUIERDA (constantes de ElementoGrafico) */
     private int direccion;
@@ -50,6 +50,7 @@ public class Destructor extends NaveEnemiga {
         setSprite("Destructor.png");
         /* Crear la bala del destructor */
         bala = new BalaEnemiga();
+        bala.setSprite("BalaDestructor.png");
     }
     /*
      * Inicializa posición aleatoria en la parte superior.
@@ -64,7 +65,7 @@ public class Destructor extends NaveEnemiga {
         columna = limiteIzq + azar.nextDouble()*(limiteDer - limiteIzq);
 
         /* Aparece en la parte superior */
-        renglon = limiteSup-80;
+        renglon = limiteSup-310;
 
         /* Activar visibilidad */
         vida = true;
@@ -112,7 +113,9 @@ public class Destructor extends NaveEnemiga {
     @Override
     public void pinta(Lienzo canvas) {
         super.pinta(canvas);
-        bala.pinta(canvas);
+        if(vida){
+            bala.pinta(canvas);
+        }
     }
 
     /*
@@ -134,6 +137,16 @@ public class Destructor extends NaveEnemiga {
         return bala;
     }
 
+    //REVISAR ESTO ALRATO
+    /*
+     * Inactiva la bala inmediatamente.
+     * Se llama desde Juego.java cuando el ave muere para
+     * evitar que la bala quede pintada en pantalla.
+     */
+    public void inactivarBala() {
+        bala.explotar();
+    }
+    
     /* Retorna los puntos configurados en la anotacion */
     @Override
     public int getPuntos() {

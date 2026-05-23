@@ -42,7 +42,7 @@ public class BalaLanzaMinas extends ElementoGrafico {
      * Segun especificacion: "solo pueden cambiar un renglon
      * y una columna por movimiento".
      */
-    private static final double PASO = 1.0;
+    private static final int PASO = 1;
     
     /*
      * Direccion fija calculada al disparar hacia el heroe.

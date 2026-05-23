@@ -84,7 +84,7 @@ public class LanzaMinas extends NaveEnemiga {
         columna = limiteIzq + azar.nextDouble() * (limiteDer - limiteIzq);
 
         /* Aparece en la parte superior */
-        renglon = limiteSup - 80;
+        renglon = limiteSup - 120;
 
         /* Activar visibilidad */
         vida = true;

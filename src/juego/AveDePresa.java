@@ -57,6 +57,8 @@ public class AveDePresa extends NaveEnemiga {
         setSprite("ADP3.png");
         /* Crear la bala de la ave */
         bala = new BalaEnemiga();
+        bala.setSprite("BalaADP.png");
+        
     }
 
     /*
@@ -72,7 +74,7 @@ public class AveDePresa extends NaveEnemiga {
         columna = limiteIzq + azar.nextDouble() * (limiteDer - limiteIzq);
 
         /* Aparece en la parte superior de la pantalla */
-        renglon = limiteSup - 80;
+        renglon = limiteSup;
 
         /* Activar visibilidad */
         vida = true;
@@ -116,7 +118,11 @@ public class AveDePresa extends NaveEnemiga {
     @Override
     public void pinta(Lienzo canvas) {
         super.pinta(canvas);
-        bala.pinta(canvas);
+        /* Solo pintar la bala si el ave esta viva.
+         * Si el ave murio, la bala se oculta inmediatamente. */
+        if (vida){
+            bala.pinta(canvas);
+        }
     }
 
     /*
@@ -124,6 +130,15 @@ public class AveDePresa extends NaveEnemiga {
      */
     private void disparar() {
         bala.disparar(columna, renglon, BalaEnemiga.ANGULO_ABAJO);
+    }
+    
+    /*
+     * Inactiva la bala inmediatamente.
+     * Se llama desde Juego.java cuando el ave muere para
+     * evitar que la bala quede pintada en pantalla.
+     */
+    public void inactivarBala() {
+        bala.explotar();
     }
 
     /* Expone la bala para deteccion de colisiones en Juego.java */
