@@ -11,6 +11,7 @@ package juego;
 
 import edu.epromero.util.Lienzo;
 import edu.epromero.util.ComportamientoEnemigo;
+import edu.epromero.util.FabricaAudio;
 import java.util.Random;
 
 /*
@@ -24,6 +25,9 @@ public class Destructor extends NaveEnemiga {
 
     /* Velocidad de movimiento horizontal */
     private static final int VELOCIDAD = 3;
+    
+    /* Velocidad actual, se ajusta segun dificultad */
+    private int velocidadActual;
 
     /* Dirección actual: DERECHA o IZQUIERDA (constantes de ElementoGrafico) */
     private int direccion;
@@ -33,6 +37,12 @@ public class Destructor extends NaveEnemiga {
 
     /* Bala del destructor */
     private BalaEnemiga bala;
+    
+    //Audio
+    private FabricaAudio audioDisparo;
+    
+    /* Frames actuales para disparo, se ajustan segun dificultad */
+    private int framesDisparoActual;
 
     /* Contador de frames para controlar el disparo cada 3 segundos.
      * A 20ms por frame, 3 segundos = 150 frames. */
@@ -47,10 +57,14 @@ public class Destructor extends NaveEnemiga {
         this.direccion = DERECHA;
         this.azar = new Random();
         this.contadorDisparo = 0;
+        this.velocidadActual = VELOCIDAD;
+        this.framesDisparoActual = FRAMES_DISPARO;
         setSprite("Destructor.png");
         /* Crear la bala del destructor */
         bala = new BalaEnemiga();
         bala.setSprite("BalaDestructor.png");
+        //iNICIALIZAR AUDIO
+        audioDisparo = new FabricaAudio();
     }
     /*
      * Inicializa posición aleatoria en la parte superior.
@@ -72,6 +86,24 @@ public class Destructor extends NaveEnemiga {
     }
 
     /*
+     * Reaparece en nueva columna aleatoria con vidas restauradas.
+     * Llama super.reaparecer() para leer la resistencia de la anotacion.
+     */
+    @Override
+    public void reaparecer() {
+        /* Restaurar vidas desde la anotacion */
+        super.reaparecer();
+ 
+        /* Nueva columna aleatoria en la parte superior */
+        columna = limiteIzq + azar.nextDouble() * (limiteDer - limiteIzq);
+        renglon = limiteSup - 310;
+ 
+        /* Reiniciar direccion y contador de disparo */
+        direccion        = DERECHA;
+        contadorDisparo  = 0;
+    }
+    
+    /*
      * Mueve el destructor de lado a lado.
      * Cuando llega a un borde invierte la dirección.
      * Gestiona el temporizador de disparo.
@@ -80,11 +112,16 @@ public class Destructor extends NaveEnemiga {
     public void mover(Entrada e) {
         /* Solo moverse si está vivo */
         if (!vida) {
+            framesMuerta += 1;
+            if (framesMuerta >= FRAMES_RESPAWN){
+                framesMuerta = 0;
+                reaparecer();
+            }
             return;
         }
 
         /* Mover horizontalmente */
-        columna += VELOCIDAD * direccion;
+        columna += velocidadActual * direccion;
 
         /* Rebotar en los bordes */
         if (columna >= limiteDer) {
@@ -130,6 +167,7 @@ public class Destructor extends NaveEnemiga {
         } else {
             bala.disparar(columna, renglon, BalaEnemiga.ANGULO_DER);
         }
+        audioDisparo.reproducir("Disp2.wav");
     }
 
     /* Expone la bala para colisiones en Juego.java */
@@ -145,6 +183,25 @@ public class Destructor extends NaveEnemiga {
      */
     public void inactivarBala() {
         bala.explotar();
+    }
+    
+     /*
+     * Ajusta la dificultad segun los puntos acumulados.
+     * Tramo 1 (0-499):    velocidad y frecuencia normales.
+     * Tramo 2 (500-999):  velocidad x1.5, dispara mas rapido.
+     * Tramo 3 (1000+):    velocidad x2,   dispara al maximo.
+     */
+    public void ajustarDificultad(int puntos) {
+        if (puntos >= 1000) {
+            velocidadActual      = VELOCIDAD * 2;
+            framesDisparoActual  = (int)(FRAMES_DISPARO * 0.5);
+        } else if (puntos >= 500) {
+            velocidadActual      = (int) (VELOCIDAD * 1.5);
+            framesDisparoActual  = (int)(FRAMES_DISPARO * 0.75);
+        } else {
+            velocidadActual      = VELOCIDAD;
+            framesDisparoActual  = FRAMES_DISPARO;
+        }
     }
     
     /* Retorna los puntos configurados en la anotacion */

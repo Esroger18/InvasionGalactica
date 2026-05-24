@@ -37,9 +37,18 @@ public class BalaEnemiga extends ElementoGrafico {
  
     /* Velocidad base de la bala */
     private static final double VELOCIDAD_BALA = 6.0;
+    
+       /*
+     * Direccion en cada eje: -1, 0 o 1.
+     * dirColumna controla movimiento horizontal.
+     * dirRenglon controla movimiento vertical.
+     */
+    
+    private int dirColumna;
+    private int dirRenglon;
  
     /* Direccion horizontal: -1 izq, 0 recto, 1 der */
-    private int angulo;
+    //private int angulo;
  
     /* Limites de pantalla obtenidos en inicia(canvas) */
     private double limiteDer;
@@ -52,7 +61,8 @@ public class BalaEnemiga extends ElementoGrafico {
         super();
         this.estadoActual = INACTIVA;
         this.contador     = 0;
-        this.angulo       = ANGULO_ABAJO;
+        this.dirColumna      = 0;
+        this.dirRenglon = -1;
         setSprite("");
     }
  
@@ -78,9 +88,28 @@ public class BalaEnemiga extends ElementoGrafico {
         }
         setColumna(columna);
         setRenglon(renglon);
-        this.angulo = angulo;
+        this.dirColumna = angulo;
+        this.dirRenglon = -1;
         estadoActual = VUELO;
         vida = true;
+    }
+    
+    /*
+     * Disparo radial: usado por LanzaMinas.
+     * Acepta direccion en ambos ejes para formar la estrella.
+     * Solo dispara si esta INACTIVA.
+     */
+    public void disparar(double columna, double renglon,
+                         int dirColumna, int dirRenglon) {
+        if (estadoActual != INACTIVA) {
+            return;
+        }
+        setColumna(columna);
+        setRenglon(renglon);
+        this.dirColumna = dirColumna;
+        this.dirRenglon = dirRenglon;
+        estadoActual    = VUELO;
+        vida            = true;
     }
     
     /*
@@ -96,10 +125,12 @@ public class BalaEnemiga extends ElementoGrafico {
  
             case VUELO:
                 /* Siempre baja */
-                renglon -= VELOCIDAD_BALA;
+                columna += VELOCIDAD_BALA * dirColumna;
+                renglon += VELOCIDAD_BALA * dirRenglon;
+                //renglon -= VELOCIDAD_BALA;
  
                 /* Componente horizontal segun angulo */
-                columna -= VELOCIDAD_BALA * angulo;
+                //columna -= VELOCIDAD_BALA * angulo;
  
                 /* Si sale de pantalla se inactiva */
                 if (renglon > limiteSup || renglon < limiteInf

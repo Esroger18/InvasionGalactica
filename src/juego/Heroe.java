@@ -4,6 +4,7 @@ package juego;
  * Extiende ElementoGrafico para heredar coordenadas y visibilidad.
  * Se mueve horizontalmente con las teclas A/D o flechas.
  */
+import edu.epromero.util.FabricaAudio;
 import edu.epromero.util.Lienzo;
 import java.awt.event.KeyEvent;
 
@@ -22,9 +23,13 @@ public class Heroe extends ElementoGrafico {
     private double limiteIzq;
     private double limiteSup;
     private double limiteInf;
+    
+    //Audio
+    private FabricaAudio audioDisparo;
+    private FabricaAudio audioDanio;
 
     /* Máximo de balas simultáneas en pantalla */
-    private static final int MAX_BALAS = 4;
+    private static final int MAX_BALAS = 3;
 
     /* Arreglo de balas para la ráfaga */
     private Bala[] balas;
@@ -48,10 +53,12 @@ public class Heroe extends ElementoGrafico {
 
     /* Constructor: solo asigna sprite y velocidad */
     public Heroe() {
-        velocidad = 5;
+        velocidad = 10;
         cooldownDisparo = 0;
         setSprite("Nave.png");
         vidas = VIDAS_INICIALES;
+        audioDisparo = new FabricaAudio();
+        audioDanio = new FabricaAudio();
 
         /* Crear las balas, se inicializarán en inicia() */
         balas = new Bala[MAX_BALAS];
@@ -132,6 +139,7 @@ public class Heroe extends ElementoGrafico {
         
         //Activar invencibilidad temporal
         framesSinDanio = FRAMES_INVENCIBLE;
+        audioDanio.reproducir("Danio.wav");
  
         /* Si quedo sin vidas, el heroe muere */
         if (vidas <= 0) {
@@ -164,18 +172,17 @@ public class Heroe extends ElementoGrafico {
             columna += velocidad;
         }
 
-        /* ── Movimiento arriba ──
+        /* ── Movimiento arriba ──*/
         if (canvas.fuePulsadaTecla(KeyEvent.VK_UP) ||
             canvas.fuePulsadaTecla(KeyEvent.VK_W)) {
             renglon += velocidad;
         }
 
-        /* ── Movimiento abajo ── 
+        /* ── Movimiento abajo ── */
         if (canvas.fuePulsadaTecla(KeyEvent.VK_DOWN) ||
             canvas.fuePulsadaTecla(KeyEvent.VK_S)) {
             renglon -= velocidad;
         }
-        */
 
         /* ── Límites de pantalla ── */
         if (renglon < limiteInf)   renglon = limiteInf;
@@ -199,8 +206,10 @@ public class Heroe extends ElementoGrafico {
              * La bala sale del centro-superior de la nave.
              * TODO: ajusta +20 y -10 según el tamaño de Heroe.png
              */
-            dispararBala(columna + 20, renglon - 10);
-            cooldownDisparo = FPS_COOLDOWN;
+            if(dispararBala(columna + 20, renglon - 10)){
+                    audioDisparo.reproducir("Disp.wav");
+                }
+                cooldownDisparo = FPS_COOLDOWN;
         }
 
         /* ── Mover todas las balas cada frame ── */

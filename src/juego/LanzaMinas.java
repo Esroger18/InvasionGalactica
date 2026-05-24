@@ -1,9 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package juego;
-
 /**
  *
  * @author Rockzer18
@@ -19,6 +14,7 @@ package juego;
 
 import edu.epromero.util.Lienzo;
 import edu.epromero.util.ComportamientoEnemigo;
+import edu.epromero.util.FabricaAudio;
 import java.util.Random;
 
 /*
@@ -32,16 +28,40 @@ import java.util.Random;
 public class LanzaMinas extends NaveEnemiga {
 
     /* Velocidad de movimiento horizontal lento */
-    private static final double VELOCIDAD = 1.5;
+    private static final int VELOCIDAD = 2;
 
     /* Direccion actual de movimiento horizontal */
     private int direccion;
+    
+    /* Velocidad actual, se ajusta segun dificultad */
+    private double velocidadActual;
+ 
+    /* Frames actuales para disparo, se ajustan segun dificultad */
+    private int framesDisparoActual;
+ 
 
     /* Generador de posicion aleatoria */
     private Random azar;
 
-    /* Bala inteligente que persigue al heroe */
-    private BalaLanzaMinas bala;
+    /* Bala de forma radial */
+    private static final int TOTAL_BALAS = 8;
+    private BalaEnemiga[] balas;
+    
+     /*
+     * Direcciones de las 8 balas: [dirColumna, dirRenglon]
+     * Forman una estrella: arriba, arriba-der, der, abajo-der,
+     * abajo, abajo-izq, izq, arriba-izq
+     */
+    private static final int[][] DIRECCIONES = {
+        { 0,  1},  /* Arriba        */
+        { 1,  1},  /* Arriba-der    */
+        { 1,  0},  /* Derecha       */
+        { 1, -1},  /* Abajo-der     */
+        { 0, -1},  /* Abajo         */
+        {-1, -1},  /* Abajo-izq     */
+        {-1,  0},  /* Izquierda     */
+        {-1,  1}   /* Arriba-izq    */
+    };
 
     /*
      * Contador de frames para el disparo cada 5 segundos.
@@ -50,10 +70,8 @@ public class LanzaMinas extends NaveEnemiga {
      */
     private int contadorDisparo;
     private static final int FRAMES_DISPARO = 250;
-
-    /* Posicion del heroe, actualizada desde Juego.java cada frame */
-    private double heroeColumna;
-    private double heroeRenglon;
+    
+    private FabricaAudio audioDisparo;
 
     /* Constructor vacio requerido por el evaluador para reflexion */
     public LanzaMinas() {
@@ -63,12 +81,19 @@ public class LanzaMinas extends NaveEnemiga {
         this.vidasActuales = 4;
         this.direccion     = DERECHA;
         this.azar          = new Random();
+        this.velocidadActual     = VELOCIDAD;
+        this.framesDisparoActual = FRAMES_DISPARO;
         this.contadorDisparo = FRAMES_DISPARO / 2; /* Retraso inicial */
-        this.heroeColumna  = 0;
-        this.heroeRenglon  = 0;
         setSprite("LMinas.png");
-        /* Crear la bala inteligente */
-        bala = new BalaLanzaMinas();
+        
+        //Crear las 8 balas del disparo radial
+        balas = new BalaEnemiga[TOTAL_BALAS];
+        for (int i = 0; i < TOTAL_BALAS; i++){
+            balas[i] = new BalaEnemiga();
+            balas[i].setSprite("BalaLMinas2.png");
+        }
+        //inicializar el audio
+        audioDisparo = new FabricaAudio();
     }
 
     /*
@@ -78,7 +103,10 @@ public class LanzaMinas extends NaveEnemiga {
     @Override
     public void inicia(Lienzo canvas) {
         super.inicia(canvas);
-        bala.inicia(canvas);
+        //Inicializa cada bala con el canvas
+        for (int i = 0; i < TOTAL_BALAS; i++){
+            balas[i].inicia(canvas);
+        }
 
         /* Columna aleatoria dentro de los limites */
         columna = limiteIzq + azar.nextDouble() * (limiteDer - limiteIzq);
@@ -91,12 +119,21 @@ public class LanzaMinas extends NaveEnemiga {
     }
 
     /*
-     * Actualiza la posicion del heroe para que la bala pueda perseguirlo.
-     * Se llama desde Juego.java antes de mover().
+     * Reaparece en nueva columna aleatoria con vidas restauradas.
+     * Llama super.reaparecer() para leer la resistencia de la anotacion.
      */
-    public void setHeroePos(double columna, double renglon) {
-        this.heroeColumna = columna;
-        this.heroeRenglon = renglon;
+    @Override
+    public void reaparecer() {
+        /* Restaurar vidas desde la anotacion */
+        super.reaparecer();
+ 
+        /* Nueva columna aleatoria en la parte superior */
+        columna = limiteIzq + azar.nextDouble() * (limiteDer - limiteIzq);
+        renglon = limiteSup - 120;
+ 
+        /* Reiniciar direccion y contador de disparo con retraso inicial */
+        direccion       = DERECHA;
+        contadorDisparo = FRAMES_DISPARO / 2;
     }
 
     /*
@@ -132,45 +169,66 @@ public class LanzaMinas extends NaveEnemiga {
             disparar();
             contadorDisparo = 0;
         }
-
-        /* Mover la bala cada frame */
-        bala.mover(e);
+        /* ── LÍNEA FALTANTE: mover las 8 balas cada frame ── */
+        for (int i = 0; i < TOTAL_BALAS; i++) {
+            balas[i].mover(e);
+        }
     }
-
     /*
      * Pinta el LanzaMinas y su bala en el canvas.
      */
     @Override
     public void pinta(Lienzo canvas) {
         super.pinta(canvas);
-        bala.pinta(canvas);
+        /* Solo pintar las balas si el LanzaMinas esta vivo */
+        if (vida) {
+            for (int i = 0; i < TOTAL_BALAS; i++) {
+                balas[i].pinta(canvas);
+            }
+        }
     }
-
     /*
      * Dispara la bala inteligente hacia la posicion actual del heroe.
      */
-    private void disparar() {
-        bala.disparar(columna, renglon, heroeColumna, heroeRenglon);
+    private void disparar(){
+        for (int i = 0; i < TOTAL_BALAS; i++) {
+            balas[i].disparar(columna, renglon,
+                    DIRECCIONES[i][0], DIRECCIONES[i][1]);
+        }
+        /* Sonido del disparo radial */
+        audioDisparo.reproducir("Disp4.wav");
     }
+
+  
 
     /*
-     * Reaparece en la parte superior con columna aleatoria nueva.
-     * Restaura las vidas segun la anotacion (resistencia = 4).
-     * Solo el LanzaMinas reaparece; los otros enemigos no.
+     * Expone las balas para deteccion de colisiones en Juego.java.
+     * Retorna el arreglo completo de las 8 balas.
      */
-    private void reaparecer() {
-        vidasActuales = 4;
-        columna       = limiteIzq + azar.nextDouble() * (limiteDer - limiteIzq);
-        renglon       = limiteSup - 80;
-        direccion     = DERECHA;
-        contadorDisparo = FRAMES_DISPARO / 2;
-        vida          = true;
+    public BalaEnemiga[] getBalas() {
+        return balas;
     }
+    
+    /*
+     * Ajusta la dificultad segun los puntos acumulados.
+     * Tramo 1 (0-499):    velocidad y frecuencia normales.
+     * Tramo 2 (500-999):  velocidad x1.5, dispara mas rapido.
+     * Tramo 3 (1000+):    velocidad x2,   dispara al maximo.
+     */
+    public void ajustarDificultad(int puntos) {
+        if (puntos >= 1000) {
+            velocidadActual      = VELOCIDAD * 2.0;
+            framesDisparoActual  = (int)(FRAMES_DISPARO * 0.5);
+        } else if (puntos >= 500) {
+            velocidadActual      = VELOCIDAD * 1.5;
+            framesDisparoActual  = (int)(FRAMES_DISPARO * 0.75);
+        } else {
+            velocidadActual      = VELOCIDAD;
+            framesDisparoActual  = FRAMES_DISPARO;
+        }
+    }
+ 
 
-    /* Expone la bala para deteccion de colisiones en Juego.java */
-    public BalaLanzaMinas getBala() {
-        return bala;
-    }
 
     /* Retorna los puntos configurados en la anotacion */
     @Override

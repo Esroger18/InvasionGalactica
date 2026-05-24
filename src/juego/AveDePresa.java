@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package juego;
 
 /**
@@ -19,6 +15,8 @@ package juego;
 
 import edu.epromero.util.Lienzo;
 import edu.epromero.util.ComportamientoEnemigo;
+import edu.epromero.util.FabricaAudio;
+import edu.epromero.util.Imagen;
 import java.util.Random;
 
 /*
@@ -30,13 +28,16 @@ import java.util.Random;
 public class AveDePresa extends NaveEnemiga {
 
     /* Velocidad de descenso vertical en pixeles por frame */
-    private static final double VELOCIDAD = 2.0;
+    private static final int VELOCIDAD = 2;
 
     /* Generador de posicion aleatoria inicial */
     private Random azar;
 
     /* Bala que dispara la ave hacia abajo */
     private BalaEnemiga bala;
+    
+     //Audio
+    private FabricaAudio audioDisparo;
 
     /*
      * Contador de frames para controlar el disparo cada 3 segundos.
@@ -44,8 +45,17 @@ public class AveDePresa extends NaveEnemiga {
      * Se inicializa a la mitad para no disparar al instante.
      */
     private int contadorDisparo;
+    
     private static final int FRAMES_DISPARO = 150;
 
+    /* Velocidad actual, se ajusta segun dificultad */
+    private int velocidadActual;
+ 
+    /* Frames actuales para disparo, se ajustan segun dificultad */
+    private int framesDisparoActual;
+    
+    private String spriteRandom;
+    
     /* Constructor vacio requerido por el evaluador para reflexion */
     public AveDePresa() {
         super();
@@ -53,11 +63,29 @@ public class AveDePresa extends NaveEnemiga {
         this.puntos        = 10;
         this.vidasActuales = 3;
         this.azar          = new Random();
+        this.velocidadActual     = VELOCIDAD;
+        this.framesDisparoActual = FRAMES_DISPARO;
         this.contadorDisparo = FRAMES_DISPARO / 2; /* Retraso inicial */
-        setSprite("ADP3.png");
+        int numero = azar.nextInt(3) + 1; // 1, 2 o 3
+        setSprite("ADP" + numero + ".png");
+        imgSprite = new Imagen(sprite);
+        /*Random random = new Random();
+        int numero = random.nextInt(1, 3);
+        if (numero == 1){
+            spriteRandom = "ADP1.png";
+        }
+        if(numero == 2){
+            spriteRandom = "ADP2.png";
+        }
+        if(numero == 3){
+            spriteRandom = "ADP3.png";
+        }
+        setSprite(spriteRandom);
         /* Crear la bala de la ave */
         bala = new BalaEnemiga();
         bala.setSprite("BalaADP.png");
+        
+        audioDisparo = new FabricaAudio();
         
     }
 
@@ -79,6 +107,28 @@ public class AveDePresa extends NaveEnemiga {
         /* Activar visibilidad */
         vida = true;
     }
+    
+    /*
+     * Reaparece en nueva columna aleatoria con vidas restauradas.
+     * Llama super.reaparecer() para leer la resistencia de la anotacion.
+     */
+    @Override
+    public void reaparecer() {
+        /* Elegir sprite aleatorio al reaparecer */
+        int numero = azar.nextInt(3) + 1; // 1, 2 o 3
+        setSprite("ADP" + numero + ".png");
+        imgSprite = new Imagen(sprite); // Recargar la imagen
+    
+        /* Restaurar vidas desde la anotacion */
+        super.reaparecer();
+ 
+        /* Nueva columna aleatoria en la parte superior */
+        columna = limiteIzq + azar.nextDouble() * (limiteDer - limiteIzq);
+        renglon = limiteSup;
+ 
+        /* Reiniciar contador de disparo con retraso inicial */
+        contadorDisparo = FRAMES_DISPARO / 2;
+    }
 
     /*
      * Mueve el ave hacia abajo cada frame.
@@ -89,11 +139,16 @@ public class AveDePresa extends NaveEnemiga {
     public void mover(Entrada e) {
         /* Solo moverse si esta activa */
         if (!vida) {
+            framesMuerta += 1;
+            if (framesMuerta >= FRAMES_RESPAWN){
+                framesMuerta = 0;
+                reaparecer();
+            }
             return;
         }
 
         /* Descender verticalmente */
-        renglon -= VELOCIDAD;
+        renglon -= velocidadActual;
 
         /* Si sale por abajo, reaparece en la parte superior con columna aleatoria */
         if (renglon < limiteInf) {
@@ -130,6 +185,7 @@ public class AveDePresa extends NaveEnemiga {
      */
     private void disparar() {
         bala.disparar(columna, renglon, BalaEnemiga.ANGULO_ABAJO);
+        audioDisparo.reproducir("Disp3.wav");
     }
     
     /*
@@ -141,6 +197,25 @@ public class AveDePresa extends NaveEnemiga {
         bala.explotar();
     }
 
+    /*
+     * Ajusta la dificultad segun los puntos acumulados.
+     * Tramo 1 (0-499):    velocidad y frecuencia normales.
+     * Tramo 2 (500-999):  velocidad x1.5, dispara mas rapido.
+     * Tramo 3 (1000+):    velocidad x2,   dispara al maximo.
+     */
+    public void ajustarDificultad(int puntos) {
+        if (puntos >= 1000) {
+            velocidadActual      = (int) (VELOCIDAD * 2.0);
+            framesDisparoActual  = (int)(FRAMES_DISPARO * 0.5);
+        } else if (puntos >= 500) {
+            velocidadActual      = (int) (VELOCIDAD * 1.5);
+            framesDisparoActual  = (int)(FRAMES_DISPARO * 0.75);
+        } else {
+            velocidadActual      = VELOCIDAD;
+            framesDisparoActual  = FRAMES_DISPARO;
+        }
+    }
+    
     /* Expone la bala para deteccion de colisiones en Juego.java */
     public BalaEnemiga getBala() {
         return bala;
