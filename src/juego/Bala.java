@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package juego;
+
 /*
  * Representa una bala disparada por el héroe.
  * Se mueve hacia arriba hasta salir de pantalla.
@@ -18,8 +19,8 @@ import edu.epromero.util.Lienzo;
 public class Bala extends ElementoGrafico {
 
     /* Estados posibles de la bala */
-    public static final int INACTIVA   = 0;
-    public static final int VUELO      = 1;
+    public static final int INACTIVA = 0;
+    public static final int VUELO = 1;
     public static final int EXPLOTANDO = 2;
 
     /* Estado actual de la bala */
@@ -45,8 +46,8 @@ public class Bala extends ElementoGrafico {
     public Bala() {
         super();
         this.estadoActual = INACTIVA;
-        this.contador     = 0;
-        setSprite("BalaNave.png");
+        this.contador = 0;
+        setSprite(".\\resources\\BalaNave.png");
     }
 
     /*
@@ -56,10 +57,10 @@ public class Bala extends ElementoGrafico {
     @Override
     public void inicia(Lienzo canvas) {
         super.inicia(canvas);
-        limiteSup  = canvas.pideLimiteYMax();
+        limiteSup = canvas.pideLimiteYMax();
         limiteInf = canvas.pideLimiteYMin();
         limiteDer = canvas.pideLimiteXMax();
-        limiteIzq   = canvas.pideLimiteXMin();
+        limiteIzq = canvas.pideLimiteXMin();
     }
 
     /*
@@ -75,6 +76,7 @@ public class Bala extends ElementoGrafico {
         estadoActual = VUELO;
         vida = true;
     }
+
     /*
      * Mueve la bala según su estado.
      * La bala se mueve sola, no necesita leer teclas.
@@ -103,23 +105,26 @@ public class Bala extends ElementoGrafico {
                 contador += 1;
                 if (contador >= FRAMES_EXPLOSION) {
                     estadoActual = INACTIVA;
-                    contador     = 0;
-                    vida         = false;
+                    contador = 0;
+                    vida = false;
                 }
                 break;
         }
     }
+
     /* Cambia el estado a EXPLOTANDO al recibir un impacto */
     public void explotar() {
         if (estadoActual == VUELO) {
             estadoActual = EXPLOTANDO;
-            contador     = 0;
+            contador = 0;
         }
     }
+
     /* Retorna true si la bala está volando, útil para colisiones */
     public boolean estaEnVuelo() {
         return estadoActual == VUELO;
     }
+
     /* Retorna el estado actual de la bala */
     public int getEstado() {
         return estadoActual;

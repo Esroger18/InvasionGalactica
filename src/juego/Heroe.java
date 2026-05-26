@@ -53,9 +53,9 @@ public class Heroe extends ElementoGrafico {
 
     /* Constructor: solo asigna sprite y velocidad */
     public Heroe() {
-        velocidad = 10;
+        velocidad = 5;
         cooldownDisparo = 0;
-        setSprite("Nave.png");
+        setSprite(".\\resources\\Nave.png");
         vidas = VIDAS_INICIALES;
         audioDisparo = new FabricaAudio();
         audioDanio = new FabricaAudio();
@@ -139,7 +139,7 @@ public class Heroe extends ElementoGrafico {
         
         //Activar invencibilidad temporal
         framesSinDanio = FRAMES_INVENCIBLE;
-        audioDanio.reproducir("Danio.wav");
+        audioDanio.reproducir(".\\resources\\Danio.wav");
  
         /* Si quedo sin vidas, el heroe muere */
         if (vidas <= 0) {
@@ -172,17 +172,18 @@ public class Heroe extends ElementoGrafico {
             columna += velocidad;
         }
 
-        /* ── Movimiento arriba ──*/
+        /* ── Movimiento arriba ──
         if (canvas.fuePulsadaTecla(KeyEvent.VK_UP) ||
             canvas.fuePulsadaTecla(KeyEvent.VK_W)) {
             renglon += velocidad;
         }
 
-        /* ── Movimiento abajo ── */
+         ── Movimiento abajo ── 
         if (canvas.fuePulsadaTecla(KeyEvent.VK_DOWN) ||
             canvas.fuePulsadaTecla(KeyEvent.VK_S)) {
             renglon -= velocidad;
         }
+        */
 
         /* ── Límites de pantalla ── */
         if (renglon < limiteInf)   renglon = limiteInf;
@@ -207,7 +208,7 @@ public class Heroe extends ElementoGrafico {
              * TODO: ajusta +20 y -10 según el tamaño de Heroe.png
              */
             if(dispararBala(columna + 20, renglon - 10)){
-                    audioDisparo.reproducir("Disp.wav");
+                    audioDisparo.reproducir(".\\resources\\Disp.wav");
                 }
                 cooldownDisparo = FPS_COOLDOWN;
         }

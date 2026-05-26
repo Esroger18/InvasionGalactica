@@ -8,10 +8,6 @@
 package juego;
 
 import edu.epromero.util.Lienzo;
-import edu.epromero.util.StdOut;
-import edu.epromero.util.LienzoStd;
-import edu.epromero.util.Imagen;
-import edu.epromero.util.LienzoStf;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 
@@ -147,7 +143,7 @@ public class Menu {
      * Pinta la pantalla del menu: titulo, top 10 y campo de nombre.
      */
     public void pinta() {
-        miCanvas.dibujo(450,400, "Menu2.png");
+        miCanvas.dibujo(450,400, ".\\resources\\Menu2.png");
         //Color del texto
         miCanvas.ponColorLapiz(255, 255, 255);
         //Fuente del texto
@@ -179,7 +175,7 @@ public class Menu {
                 miCanvas.ponFuente(fuenteTexto);
                 miCanvas.ponColorLapiz(0, 0, 0);
                 miCanvas.texto(450, 550, "Ingresa tu nombre:");
-                miCanvas.texto(450, 480, nombreJugador + "_");
+                miCanvas.texto(450, 480, nombreJugador);
                 miCanvas.texto(450, 410, "Presiona ENTER para confirmar");
                 break;
 

@@ -1,3 +1,14 @@
+/*
+*   MIXTLI (NUBES)
+*   
+*   JUEGO DESARROLLADO POR: Espinoza Velázquez Rogelio
+*   FACULTAD DE ESTUDIOS SUPERIORES ARAGÓN
+*   INGENIERIA EN COMPUTACIÓN   
+*   PROGRAMACIÓN ORIENTADA A OBJETOS
+*   GRUPO: 2210
+*   
+*   FECHA: 26/05/2026
+*/
 package juego;
 
 import edu.epromero.util.FabricaAudio;
@@ -7,114 +18,123 @@ import java.awt.Font;
 import java.awt.event.KeyEvent;
 
 /*
- * Motor principal del juego. Punto de entrada.
- * Sigue el patrón del profe igual que el Pong:
- * crea miCanvas, inicia objetos, loop: limpia -> mover -> pinta -> mostrar
- */
+*   CLASE: JUEGO
+*   Motor principal del juego y punto de entrada.
+*/
+
 public class Juego {
 
-    /* Dimensiones de la ventana */
+    //ATRIBUTOS:
+    
+    //Tamaño del Canva
     private static final int ANCHO = 900;
     private static final int ALTO  = 800;
     
-     /* Radios de colision por tipo de objeto (60% del sprite, descontando espacio blanco) */
-    private static final int RADIO_HEROE       = 40; /* Nave.png      132x132 132x120*/
-    private static final int RADIO_DESTRUCTOR  = 40; /* Destructor    132x132 */
-    private static final int RADIO_AVE         = 40; /* ADP1.png      132x132 */
-    private static final int RADIO_LMINAS  = 100; /* LMinas.png    198x198 */
-    private static final int RADIO_BALA        = 20; /* Balas         66x66   */
-
+     //Hitboxes
+    private static final int RADIO_HEROE = 70; /* Nave.png      132x132 */
+    private static final int RADIO_DESTRUCTOR = 80; /* Destructor    132x132 */
+    private static final int RADIO_AVE = 80; /* ADP1.png      132x132 */
+    private static final int RADIO_LMINAS = 120; /* LMinas.png    198x198 */
+    private static final int RADIO_ZIGZAG = 80; /* ZigZag 132x132 */
+    private static final int RADIO_BALA = 40; /* Balas 66x66   */
+    
+    //Puntuación para vida extra
     private static final int PUNTOS_VIDA_EXTRA = 500;
     
-    /* El lienzo de dibujo, igual que miCanvas en Pong */
+    //Lienzo
     private Lienzo miCanvas;
+    
     //Audio del juego
     private FabricaAudio audio;
-    private FabricaAudio audioDisparo;
-    private FabricaAudio audioGameOver;
-    private FabricaAudio audioVidaE;
-    private FabricaAudio audioDanio;
     
-    /* El héroe del juego */
+    //Héroe del juego
     private Heroe heroe;
     
     //Destructor
     private Destructor[] destructor;
+    
     //Ave de Presa
     private AveDePresa[] aveDePresa;
+    
     //Lanza Minas
     private LanzaMinas lanzaMinas;
+    
+    //ZigZag
+    private NaveZigZag naveZigZag;
 
-    /* Objeto de entrada compartido */
+    //Objeto de entrada
     private Entrada entrada;
     
-    //Menu principal y marcador de puntajes
+    //Menu principal
     private Menu menu;
+    
+    //Marcador de puntajes
     private Marcador marcador;
 
-    /* Puntaje acumulado y control de vida extra */
+    //Puntaje acumulado
     private int puntos;
+    
+    //Control de vida extra
     private int puntosUltimaVidaExtra;
     
-    /* Cantidad de cada tipo de enemigo en pantalla */
+    //Cantidad de cada tipo de enemigo en pantalla
     private static final int TOTAL_DESTRUCTORES = 3;
-    private static final int TOTAL_AVES         = 2;
+    private static final int TOTAL_AVES         = 3;
  
-     /* Umbrales de puntos para cambiar de tramo de dificultad */
-    private static final int UMBRAL_DIFICULTAD_MEDIA = 500;
-    private static final int UMBRAL_DIFICULTAD_ALTA  = 1000;
+    //Umbrales de puntos para cambiar de tramo de dificultad
+    private static final int DIF_MEDIA = 500;
+    private static final int DIF_MEDIA2 = 1000;
+    private static final int DIF_DIFICIL = 1500;
     
-    /* Tramo de dificultad actual para no llamar ajustarDificultad cada frame */
+    //Tramo de dificultad actual para no llamar ajustarDificultad cada frame
     private int tramoDificultadActual;
     
-    /*
-     * Radio de colision en pixeles.
-     * Si la distancia entre dos objetos es menor a este valor,
-     * se considera colision.
-     */
-    //private static final double RADIO_COLISION = 30.0;
+    //---CONSTRUCTORES---
     
-    
-    /*
-     * Constructor: crea el lienzo y todos los objetos.
-     * Igual que el Juego del profe.
-     */
+    //Constructor principal del juego
     public Juego() {
-        /* Crear y configurar el lienzo */
+        
+        //Crear y configura el lienzo
         miCanvas = new Lienzo();
         miCanvas.ponTamanioLienzo(ANCHO, ALTO);
         miCanvas.ponEscalaX(0, ANCHO);
         miCanvas.ponEscalaY(0, ALTO);
-
+        
         //Audio
         audio = new FabricaAudio();
-        //audioGameOver = new FabricaAudio();
-        /* Crear la entrada y asignarle el canvas */
+        
+        //Crear la entrada y asignarle el canvas
         entrada = new Entrada();
         entrada.setMiCanvas(miCanvas);
         
+        //Crea el marcador y el menu
         marcador = new Marcador();
         menu = new Menu(miCanvas, marcador);
 
-        /* Crear las naves (sin dimensiones, las toma en inicia) */
+        //Crear las naves (sin dimensiones, las toma en inicia)
         heroe = new Heroe();
+        
+        //Destructor
         destructor = new Destructor[TOTAL_DESTRUCTORES];
+        //
         for (int i = 0; i < TOTAL_DESTRUCTORES; i++) {
             destructor[i] = new Destructor();
         }
+        
+        //Ave de Presa
         aveDePresa = new AveDePresa[TOTAL_AVES];
+        //
         for (int i = 0; i < TOTAL_AVES; i++) {
             aveDePresa[i] = new AveDePresa();
         }
+        //Lanza Minas
         lanzaMinas = new LanzaMinas();
-
-        /* Inicializar todos los objetos */
+        
+        //Nave ZigZag
+        naveZigZag = new NaveZigZag();
+        
+        //Inicializar todos los objetos
         iniciarObjetos();
-        /* inicia() carga imágenes y fija posición inicial */
-        //heroe.inicia(miCanvas);
-        //destructor.inicia(miCanvas);
-        //aveDePresa.inicia(miCanvas);
-        //lanzaMinas.inicia(miCanvas);
         
         //Puntaje inicial
         puntos = 0;
@@ -127,36 +147,35 @@ public class Juego {
      * Se separa del constructor para poder reutilizarse en reiniciar().
      */
     private void iniciarObjetos() {
+        
+        //Se inician los objetos en el Canvas
+        
+        //Heroe
         heroe.inicia(miCanvas);
- 
+        
+        //Destructores
         for (int i = 0; i < TOTAL_DESTRUCTORES; i++) {
             destructor[i].inicia(miCanvas);
         }
+        
+        //Ave de presa
         for (int i = 0; i < TOTAL_AVES; i++) {
             aveDePresa[i].inicia(miCanvas);
         }
+        
+        //LMinas
         lanzaMinas.inicia(miCanvas);
+
+        //ZigZag
+        naveZigZag.inicia(miCanvas);
     }
-    /*
-     * Reinicia el juego para una nueva partida.
-     * Restablece posiciones, vidas y puntaje.
-    
-    public void reiniciar() {
-        heroe.inicia(miCanvas);
-        destructor.inicia(miCanvas);
-        aveDePresa.inicia(miCanvas);
-        lanzaMinas.inicia(miCanvas);
-        puntos               = 0;
-        puntosUltimaVidaExtra = 0;
-        menu.reiniciar();
-    }*/
     /*
      * Reinicia el juego para una nueva partida.
      * Restablece posiciones, vidas, puntaje y dificultad.
      */
     public void reiniciar() {
         iniciarObjetos();
-        puntos                = 0;
+        puntos = 0;
         puntosUltimaVidaExtra = 0;
         tramoDificultadActual = 0;
         menu.reiniciar();
@@ -170,7 +189,7 @@ public class Juego {
         /* Verificar si se alcanza el umbral de vida extra */
         if (puntos - puntosUltimaVidaExtra >= PUNTOS_VIDA_EXTRA) {
             heroe.ganarVida();
-            audio.reproducir("VidaE.wav");
+            audio.reproducir(".\\resources\\VidE.wav");
             puntosUltimaVidaExtra += PUNTOS_VIDA_EXTRA;
         }
     }
@@ -181,36 +200,30 @@ public class Juego {
      * Tramo 0 (0-499):    velocidad y frecuencia normales.
      * Tramo 1 (500-999):  velocidad x1.5, dispara mas rapido.
      * Tramo 2 (1000+):    velocidad x2,   dispara al maximo.
-     */
-    private void actualizarDificultad() {
-        int nuevoTramo;
- 
-        /* Determinar el tramo actual segun puntos */
-        if (puntos >= UMBRAL_DIFICULTAD_ALTA) {
-            nuevoTramo = 2;
-        } else if (puntos >= UMBRAL_DIFICULTAD_MEDIA) {
-            nuevoTramo = 1;
-        } else {
-            nuevoTramo = 0;
+     *
+    /*private void actualizarDificultad() {
+    /* Cada 500 puntos se aplica un aumento acumulativo del 50% 
+    int nivelesAlcanzados = puntos / 500;
+
+    /* Solo actuar cuando se cruce un nuevo umbral de 500 puntos 
+    if (nivelesAlcanzados > tramoDificultadActual) {
+        tramoDificultadActual = nivelesAlcanzados;
+
+        /* Llamar una sola vez para aplicar el aumento acumulativo 
+        for (int i = 0; i < TOTAL_DESTRUCTORES; i++) {
+            destructor[i].ajustarDificultad();
         }
- 
-        /* Solo actualizar si cambio de tramo */
-        if (nuevoTramo != tramoDificultadActual) {
-            tramoDificultadActual = nuevoTramo;
- 
-            /* Ajustar dificultad en todos los enemigos */
-            for (int i = 0; i < TOTAL_DESTRUCTORES; i++) {
-                destructor[i].ajustarDificultad(puntos);
-            }
-            for (int i = 0; i < TOTAL_AVES; i++) {
-                aveDePresa[i].ajustarDificultad(puntos);
-            }
-            lanzaMinas.ajustarDificultad(puntos);
+        for (int i = 0; i < TOTAL_AVES; i++) {
+            aveDePresa[i].ajustarDificultad();
         }
+        lanzaMinas.ajustarDificultad();
+        naveZigZag.ajustarDificultad();
     }
+}
     
-    /* Mueve todos los elementos del juego */
+    Mueve todos los elementos del juego */
     public void mover() {
+        //moverFondo();
         heroe.mover(entrada);
          for (int i = 0; i < TOTAL_DESTRUCTORES; i++) {
             destructor[i].mover(entrada);
@@ -219,13 +232,16 @@ public class Juego {
             aveDePresa[i].mover(entrada);
         }
         lanzaMinas.mover(entrada);
+        naveZigZag.mover(entrada);
  
         /* Actualizar dificultad segun puntos actuales */
-        actualizarDificultad();
+        //actualizarDificultad();
     }
 
     /* Pinta todos los elementos del juego */
     public void pinta() {
+        miCanvas.dibujo(450, 400, ".\\resources\\FJ45.png");
+        //miCanvas.dibujo(ANCHO / 2, fondoJ2, "FJ46.png");
         heroe.pinta(miCanvas);
         for (int i = 0; i < TOTAL_DESTRUCTORES; i++) {
             destructor[i].pinta(miCanvas);
@@ -234,14 +250,15 @@ public class Juego {
             aveDePresa[i].pinta(miCanvas);
         }
         lanzaMinas.pinta(miCanvas);
+        naveZigZag.pinta(miCanvas);
         
         /* Mostrar puntaje y vidas en pantalla */
-        miCanvas.ponColorLapiz(0, 0, 0);
+        miCanvas.ponColorLapiz(255, 212, 0);
         //Fuente del texto
-        Font fuenteTexto = new Font("MS UI Gothic", Font.PLAIN, 30);
+        Font fuenteTexto = new Font("MS UI Gothic", Font.BOLD, 40);
         miCanvas.ponFuente(fuenteTexto);
-        miCanvas.texto(80,  20, "PUNTOS: " + puntos);
-        miCanvas.texto(820, 20, "VIDAS: "  + heroe.getVidas());
+        miCanvas.texto(820,  20, "PUNTOS: " + puntos);
+        miCanvas.texto(80, 20, "VIDAS: "  + heroe.getVidas());
     }
 
     /*
@@ -255,6 +272,8 @@ public class Juego {
      *   4. Bala del Destructor vs Heroe
      *   5. Bala del AveDePresa vs Heroe
      *   6. Bala del LanzaMinas vs Heroe
+     *   7. Bala del heroe vs NaveZigZag
+     *   8. 
      */
     
     public void revisarColisiones() {
@@ -283,8 +302,8 @@ public class Juego {
                     balasHeroe[i].explotar();
                     if (destructor[d].recibirDanio()) {
                         sumarPuntos(destructor[d].getPuntos());
-                        destructor[d].inactivarBala();
-                        audio.reproducir("Explosion.wav");
+                        //destructor[d].inactivarBala();
+                        audio.reproducir(".\\resources\\Explosion.wav");
                     }
                 }
             }
@@ -309,8 +328,8 @@ public class Juego {
                     balasHeroe[i].explotar();
                     if (aveDePresa[a].recibirDanio()) {
                         sumarPuntos(aveDePresa[a].getPuntos());
-                        aveDePresa[a].inactivarBala();
-                        audio.reproducir("Explosion2.wav");
+                        //aveDePresa[a].inactivarBala();
+                        audio.reproducir(".\\resources\\Explosion2.wav");
                     }
                 }
             }
@@ -332,7 +351,7 @@ public class Juego {
                     balasHeroe[i].explotar();
                     if (lanzaMinas.recibirDanio()) {
                         sumarPuntos(lanzaMinas.getPuntos());
-                        audio.reproducir("Explosion3.wav");
+                        audio.reproducir(".\\resources\\Explosion3.wav");
                     }
                 }
             }
@@ -428,8 +447,37 @@ public class Juego {
                 heroe.perderVida();
             }
         }
-    }
-    
+        
+        /* --- 10. Balas del heroe vs NaveZigZag --- */
+        if (naveZigZag.isVisible()) {
+            Punto2D posZigZag = new Punto2D(
+                naveZigZag.getColumna(), naveZigZag.getRenglon());
+
+            for (int i = 0; i < balasHeroe.length; i++) {
+                if (!balasHeroe[i].estaEnVuelo()) {
+                    continue;
+                }
+                Punto2D posBala = new Punto2D(
+                    balasHeroe[i].getColumna(), balasHeroe[i].getRenglon());
+                
+                if (posBala.distanceTo(posZigZag) < RADIO_BALA + RADIO_ZIGZAG) {
+                    balasHeroe[i].explotar();
+                    if (naveZigZag.recibirDanio()) {
+                        sumarPuntos(naveZigZag.getPuntos());
+                        audio.reproducir(".\\resources\\Explosion.wav");
+                    }
+                }
+            }
+        }
+        /* --- 11. heroe vs NaveZigZag Colision--- */
+        if (heroe.isVisible() && naveZigZag.isVisible()){
+            Punto2D posZigZagNave = new Punto2D(
+                naveZigZag.getColumna(), naveZigZag.getRenglon());
+            if (posHeroe.distanceTo(posZigZagNave) < RADIO_HEROE + RADIO_ZIGZAG){
+                heroe.perderVida();
+            }
+        }
+    }  
     /* Punto de entrada: loop igual al del Pong del profe */
     public static void main(String[] args) {
 
@@ -458,7 +506,7 @@ public class Juego {
                         juego.puntos);
                 //Mostar pantalla de game over
                 juego.miCanvas.limpia();
-                juego.miCanvas.dibujo(450, 400, "Black.png");
+                juego.miCanvas.dibujo(450, 400, ".\\resources\\Black.png");
                 juego.miCanvas.ponColorLapiz(255, 255, 255);
                 juego.miCanvas.texto(450, 500, "GAME OVER");
                 //audio.reproducir("GameOver.wav");

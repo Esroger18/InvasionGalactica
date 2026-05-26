@@ -84,13 +84,13 @@ public class LanzaMinas extends NaveEnemiga {
         this.velocidadActual     = VELOCIDAD;
         this.framesDisparoActual = FRAMES_DISPARO;
         this.contadorDisparo = FRAMES_DISPARO / 2; /* Retraso inicial */
-        setSprite("LMinas.png");
+        setSprite(".\\resources\\LMinas.png");
         
         //Crear las 8 balas del disparo radial
         balas = new BalaEnemiga[TOTAL_BALAS];
         for (int i = 0; i < TOTAL_BALAS; i++){
             balas[i] = new BalaEnemiga();
-            balas[i].setSprite("BalaLMinas2.png");
+            balas[i].setSprite(".\\resources\\BalaLMinas2.png");
         }
         //inicializar el audio
         audioDisparo = new FabricaAudio();
@@ -165,7 +165,7 @@ public class LanzaMinas extends NaveEnemiga {
 
         /* Contar frames para el disparo cada 5 segundos */
         contadorDisparo += 1;
-        if (contadorDisparo >= FRAMES_DISPARO) {
+        if (contadorDisparo >= framesDisparoActual) {
             disparar();
             contadorDisparo = 0;
         }
@@ -196,7 +196,7 @@ public class LanzaMinas extends NaveEnemiga {
                     DIRECCIONES[i][0], DIRECCIONES[i][1]);
         }
         /* Sonido del disparo radial */
-        audioDisparo.reproducir("Disp4.wav");
+        audioDisparo.reproducir(".\\resources\\Disp3.wav");
     }
 
   
@@ -215,21 +215,14 @@ public class LanzaMinas extends NaveEnemiga {
      * Tramo 2 (500-999):  velocidad x1.5, dispara mas rapido.
      * Tramo 3 (1000+):    velocidad x2,   dispara al maximo.
      */
-    public void ajustarDificultad(int puntos) {
-        if (puntos >= 1000) {
-            velocidadActual      = VELOCIDAD * 2.0;
-            framesDisparoActual  = (int)(FRAMES_DISPARO * 0.5);
-        } else if (puntos >= 500) {
-            velocidadActual      = VELOCIDAD * 1.5;
-            framesDisparoActual  = (int)(FRAMES_DISPARO * 0.75);
-        } else {
-            velocidadActual      = VELOCIDAD;
-            framesDisparoActual  = FRAMES_DISPARO;
+    /*public void ajustarDificultad() {
+        if (velocidadActual < 10){
+            velocidadActual     = velocidadActual * 1.5;
+        }
+        if (framesDisparoActual > 40){
+            framesDisparoActual = (int)(framesDisparoActual * 0.67);
         }
     }
- 
-
-
     /* Retorna los puntos configurados en la anotacion */
     @Override
     public int getPuntos() {

@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package juego;
 
 /**
@@ -59,10 +55,10 @@ public class Destructor extends NaveEnemiga {
         this.contadorDisparo = 0;
         this.velocidadActual = VELOCIDAD;
         this.framesDisparoActual = FRAMES_DISPARO;
-        setSprite("Destructor.png");
+        setSprite(".\\resources\\Destructor.png");
         /* Crear la bala del destructor */
         bala = new BalaEnemiga();
-        bala.setSprite("BalaDestructor.png");
+        bala.setSprite(".\\resources\\BalaDestructor.png");
         //iNICIALIZAR AUDIO
         audioDisparo = new FabricaAudio();
     }
@@ -110,6 +106,8 @@ public class Destructor extends NaveEnemiga {
      */
     @Override
     public void mover(Entrada e) {
+        /* Mover la bala cada frame */
+        bala.mover(e);
         /* Solo moverse si está vivo */
         if (!vida) {
             framesMuerta += 1;
@@ -135,13 +133,10 @@ public class Destructor extends NaveEnemiga {
 
         /* Contar frames para el disparo */
         contadorDisparo += 1;
-        if (contadorDisparo >= FRAMES_DISPARO) {
+        if (contadorDisparo >= framesDisparoActual) {
             disparar();
             contadorDisparo = 0;
         }
-
-        /* Mover la bala cada frame */
-        bala.mover(e);
     }
 
     /*
@@ -150,9 +145,7 @@ public class Destructor extends NaveEnemiga {
     @Override
     public void pinta(Lienzo canvas) {
         super.pinta(canvas);
-        if(vida){
-            bala.pinta(canvas);
-        }
+        bala.pinta(canvas);
     }
 
     /*
@@ -167,7 +160,7 @@ public class Destructor extends NaveEnemiga {
         } else {
             bala.disparar(columna, renglon, BalaEnemiga.ANGULO_DER);
         }
-        audioDisparo.reproducir("Disp2.wav");
+        audioDisparo.reproducir(".\\resources\\Disp2.wav");
     }
 
     /* Expone la bala para colisiones en Juego.java */
@@ -191,16 +184,12 @@ public class Destructor extends NaveEnemiga {
      * Tramo 2 (500-999):  velocidad x1.5, dispara mas rapido.
      * Tramo 3 (1000+):    velocidad x2,   dispara al maximo.
      */
-    public void ajustarDificultad(int puntos) {
-        if (puntos >= 1000) {
-            velocidadActual      = VELOCIDAD * 2;
-            framesDisparoActual  = (int)(FRAMES_DISPARO * 0.5);
-        } else if (puntos >= 500) {
-            velocidadActual      = (int) (VELOCIDAD * 1.5);
-            framesDisparoActual  = (int)(FRAMES_DISPARO * 0.75);
-        } else {
-            velocidadActual      = VELOCIDAD;
-            framesDisparoActual  = FRAMES_DISPARO;
+    /*public void ajustarDificultad() {
+        if (velocidadActual < 6){
+            velocidadActual     = (int)(velocidadActual * 1.5);
+        }
+        if (framesDisparoActual > 40){
+            framesDisparoActual = (int)(framesDisparoActual * 0.67);
         }
     }
     
